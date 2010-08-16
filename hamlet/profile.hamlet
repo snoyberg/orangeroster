@@ -1,0 +1,5 @@
+%h3 Profile for: $userDisplayName.src$
+%dl
+    $forall profile p
+        %dt $fst.p$
+        %dd $snd.p$

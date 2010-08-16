@@ -1,0 +1,33 @@
+%p Welcome $userDisplayName.u$
+%h3 Your email addresses.
+%ul
+    $forall emails email
+        %li $emailEmail.snd.email$
+%h3 Your profile.
+%dl
+    $forall profile p
+        %dt $fst.p$
+        %dd $snd.p$
+%h3 Add new pair.
+%form!method=post!enctype=$enctype$
+    %table
+        ^form^
+        %tr
+            %td!colspan=2
+                %input!type=submit!value=Add
+%h3 Share
+%form!method=post!action=@ShareR@
+    %table
+        %tr
+            %th Email
+            %td
+                %input!type=email!name=email
+        %tr
+            %td!colspan=2
+                %input!type=submit!value=Share
+%h3 Sharing with me
+%ul
+    $forall shares s
+        %li
+            %a!href=@ProfileR.fst.s@
+                $userDisplayName.snd.s$

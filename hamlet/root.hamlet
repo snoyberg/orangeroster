@@ -1,0 +1,5 @@
+%p Welcome to Orange Roster.
+%h3 Warning: This service is pre-alpha. Your data will be lost.
+
+%p
+    %a!href=@AuthR.StartFacebookR@ Login via Facebook

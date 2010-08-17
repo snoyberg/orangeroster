@@ -16,5 +16,5 @@ getProfileR srcid = do
     isShared <- fmap isJust $ runDB $ getBy $ UniqueShare srcid destid
     unless isShared $ permissionDenied "The request user is not sharing with you."
     src <- runDB $ get404 srcid
-    profile <- runDB $ getMainProfile srcid >>= loadEntry
+    profile <- runDB $ loadProfile $ userProfile src
     applyLayoutW $ addBody $(hamletFile "profile")

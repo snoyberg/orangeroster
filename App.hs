@@ -30,6 +30,9 @@ mkYesodData "OR" [$parseRoutes|
 /share ShareR POST
 /profile/#UserId ProfileR GET
 
+/entries EntriesR POST
+/entry/#EntryId EntryR GET POST
+
 /static StaticR Static getStatic
 /favicon.ico FaviconR GET
 /auth AuthR Auth getAuth
@@ -70,7 +73,8 @@ instance YesodAuth OR where
                             Just uid -> return uid
                             Nothing -> do
                                 now <- liftIO getCurrentTime
-                                uid <- runDB $ insert $ User now dn
+                                eid <- runDB $ insert $ Profile now
+                                uid <- runDB $ insert $ User now dn eid
                                 _ <- runDB $ insert $ FacebookCred uid ci
                                 return uid
                 setUserId uid

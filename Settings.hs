@@ -10,6 +10,8 @@ module Settings
     , approot
     , staticroot
     , staticdir
+    , facebookKey
+    , facebookSecret
     ) where
 
 import qualified Text.Hamlet as H
@@ -17,7 +19,7 @@ import qualified Text.Cassius as H
 import qualified Text.Julius as H
 import Language.Haskell.TH.Syntax
 import Database.Persist.Postgresql
-import "MonadCatchIO-transformers" Control.Monad.CatchIO
+import Yesod (MonadCatchIO)
 
 hamletFile :: FilePath -> Q Exp
 hamletFile x = H.hamletFileDebug $ "hamlet/" ++ x ++ ".hamlet"
@@ -45,3 +47,9 @@ staticroot = approot ++ "/static"
 
 staticdir :: FilePath
 staticdir = "static"
+
+facebookKey :: String
+facebookKey = "5b9b0d6a39f24ca98a2ffdea4e30edee"
+
+facebookSecret :: String
+facebookSecret = "ee154153e840d0cef86b923a6931492a"

@@ -17,13 +17,14 @@ entryFormlet p = fieldsToTable $ (,)
 getHomeR :: Handler OR RepHtml
 getHomeR = do
     (uid, u) <- reqUserId
-    profile <- runDB $ getMainProfile uid >>= loadEntry
+    profile <- runDB $ loadProfile $ userProfile u
     emails <- runDB $ selectList [EmailOwnerEq uid] [] 0 0
     (_, wform, enctype) <- runFormGet $ entryFormlet Nothing
     shares <- runDB $ selectList [ShareDestEq uid] [] 0 0 >>= mapM (\(_, Share srcid _) -> do
         src <- get404 srcid
         return (srcid, src)
         )
+    entries <- runDB $ selectList [EntryOwnerEq uid] [EntryTitleAsc] 0 0
     applyLayoutW $ do
         setTitle "Homepage"
         form <- extractBody wform
@@ -31,12 +32,12 @@ getHomeR = do
 
 postHomeR :: Handler OR RepHtml
 postHomeR = do
-    (uid, _) <- reqUserId
-    eid <- runDB $ getMainProfile uid
+    (uid, u) <- reqUserId
+    let eid = userProfile u
     (x, wform, enctype) <- runFormPost $ entryFormlet Nothing
     case x of
         FormSuccess (k, v) -> do
-            _ <- runDB $ insert $ EntryData eid k v
+            _ <- runDB $ insert $ ProfileData eid k v
             setMessage "Data added to profile"
             redirect RedirectTemporary HomeR
         _ -> return ()

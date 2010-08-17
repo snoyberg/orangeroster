@@ -31,3 +31,18 @@
         %li
             %a!href=@ProfileR.fst.s@
                 $userDisplayName.snd.s$
+%h3 My entries
+%ul
+    $forall entries e
+        %li
+            %a!href=@EntryR.fst.e@ $entryTitle.snd.e$
+%h3 Add new entry
+%form!method=post!action=@EntriesR@
+    %table
+        %tr
+            %th Name
+            %td
+                %input!type=text!name=name
+        %tr
+            %td!colspan=2
+                %input!type=submit!value="Add new entry"

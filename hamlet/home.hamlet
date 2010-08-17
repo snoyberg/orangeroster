@@ -1,48 +1,69 @@
-%p Welcome $userDisplayName.u$
-%h3 Your email addresses.
-%ul
-    $forall emails email
-        %li $emailEmail.snd.email$
-%h3 Your profile.
-%dl
-    $forall profile p
-        %dt $fst.p$
-        %dd $snd.p$
-%h3 Add new pair.
-%form!method=post!enctype=$enctype$
-    %table
-        ^form^
-        %tr
-            %td!colspan=2
-                %input!type=submit!value=Add
-%h3 Share
-%form!method=post!action=@ShareR@
-    %table
-        %tr
-            %th Email
-            %td
-                %input!type=email!name=email
-        %tr
-            %td!colspan=2
-                %input!type=submit!value=Share
-%h3 Sharing with me
-%ul
-    $forall shares s
+#tabs
+    %ul
         %li
-            %a!href=@ProfileR.fst.s@
-                $userDisplayName.snd.s$
-%h3 My entries
-%ul
-    $forall entries e
+            %a!href="#notifications" Notifications
         %li
-            %a!href=@EntryR.fst.e@ $entryTitle.snd.e$
-%h3 Add new entry
-%form!method=post!action=@EntriesR@
-    %table
-        %tr
-            %th Name
-            %td
-                %input!type=text!name=name
-        %tr
-            %td!colspan=2
-                %input!type=submit!value="Add new entry"
+            %a!href="#profile" My Profile
+        %li
+            %a!href="#sharing" Sharing
+        %li
+            %a!href="#book" Address Book
+    #notifications
+        $if null.notes
+            %p You have no new notifications.
+        $else
+            %ul
+                $forall notes n
+                    %li $n$
+    #profile
+        %h2 Emails
+        %ul
+            $forall emails email
+                %li $emailEmail.snd.email$
+        %form!action=/FIXME/
+            Add new email address: $
+            %input!type=email!name=email
+            \ $
+            %input!type=submit!value="Add new email address"
+        %h2 Phone numbers
+        %h2 Addresses
+        %h2 Miscellaneous
+        %table.profile
+            $forall profile p
+                %tr
+                    %th $fst.p$
+                    %td $snd.p$
+        %form.hidden!method=post!enctype=$enctype$
+            %table
+                ^form^
+                %tr
+                    %td!colspan=2
+                        %input!type=submit!value=Add
+    #sharing
+        %form!method=post!action=@ShareR@
+            Email $
+            %input!type=email!name=email
+            \ $
+            %input!type=submit!value=Share
+        %h3 Share FIXME: one table, I'm share with, they share with me. Show "share alike" button and "stop sharing". Show list of share offers.
+        %h3 Sharing with me
+        %ul
+            $forall shares s
+                %li
+                    %a!href=@ProfileR.fst.s@
+                        $userDisplayName.snd.s$
+    #book
+        %form!method=post!action=@EntriesR@
+            Add new entry named $
+            %input!type=text!name=name
+            \ $
+            %input!type=submit!value="Add new entry"
+        %h3 My entries
+        %h3 Offer delete an entry/rename an entry.
+        %table
+            $forall entries e
+                %tr
+                    %td
+                        %a!href=@EntryR.fst.e@ $entryTitle.snd.e$
+                    %td
+                        %span.ui-icon.ui-icon-trash

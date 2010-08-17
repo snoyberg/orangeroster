@@ -10,6 +10,7 @@ module App
 import Yesod
 import Yesod.Helpers.Auth
 import Yesod.Helpers.Static
+import Yesod.Form.Jquery
 import qualified Settings
 import System.Directory
 import qualified Data.ByteString.Lazy as L
@@ -17,6 +18,7 @@ import Web.Routes.Site
 import Database.Persist.GenericSql
 import Model
 import Data.Time (getCurrentTime)
+import StaticFiles
 
 data OR = OR
     { getStatic :: Static
@@ -41,6 +43,8 @@ mkYesodData "OR" [$parseRoutes|
 instance Yesod OR where
     approot _ = Settings.approot
     defaultLayout pc = do
+        u <- maybeUserId
+        let user = fmap (userDisplayName . snd) u
         mmsg <- getMessage
         hamletToContent $(Settings.hamletFile "default-layout")
     urlRenderOverride a (StaticR s) =
@@ -65,31 +69,45 @@ instance YesodAuth OR where
     defaultDest _ = HomeR
     defaultLoginRoute _ = RootR
     onLogin c _ =
-        case (credsAuthType c, credsDisplayName c) of
-            (AuthFacebook, Just dn) -> do
+        case (credsAuthType c, credsDisplayName c, credsEmail c) of
+            (AuthFacebook, Just dn, Just email) -> do
                 let ci = credsIdent c
                 x <- runDB $ getBy $ UniqueFacebook ci
                 uid <- case fmap (facebookCredUser . snd) x of
                             Just uid -> return uid
-                            Nothing -> do
-                                now <- liftIO getCurrentTime
-                                eid <- runDB $ insert $ Profile now
-                                uid <- runDB $ insert $ User now dn eid
-                                _ <- runDB $ insert $ FacebookCred uid ci
+                            Nothing -> runDB $ do
+                                uid <- newUser dn
+                                _ <- insert $ FacebookCred uid ci
                                 return uid
                 setUserId uid
-                case credsEmail c of
-                    Nothing -> return ()
-                    Just email -> runDB $ do
-                        me <- getBy $ UniqueEmail email
-                        case me of
-                            Nothing -> do
-                                _ <- insert $ Email uid email
-                                return ()
-                            Just _ -> do
-                                -- FIXME check if this is for a different
-                                -- account, and perhaps flag a merge request?
-                                return ()
+                runDB $ do
+                    me <- getBy $ UniqueEmail email
+                    case me of
+                        Nothing -> do
+                            _ <- insert $ Email uid email Nothing True
+                            -- Claim any share offers
+                            selectList [ShareOfferDestEq email] [] 0 0 >>= mapM_ (\(sid, s) -> do
+                                _ <- insert $ Share (shareOfferSource s) uid
+                                delete sid)
+                        Just _ -> do
+                            -- FIXME check if this is for a different
+                            -- account, and perhaps flag a merge request?
+                            return ()
+            (AuthEmail, _, Just email) -> do
+                uid <- runDB $ do
+                    me <- getBy $ UniqueEmail email
+                    uid <- case me of
+                        Nothing -> do
+                            uid <- newUser email
+                            _ <- insert $ Email uid email Nothing True
+                            return uid
+                        Just (_, Email uid _ _ _) -> return uid
+                    -- Claim any share offers
+                    selectList [ShareOfferDestEq email] [] 0 0 >>= mapM_ (\(sid, s) -> do
+                        _ <- insert $ Share (shareOfferSource s) uid
+                        delete sid)
+                    return uid
+                setUserId uid
             _ -> return ()
 
 userKey :: String
@@ -126,3 +144,8 @@ reqUserId = do
             setMessage $ string "Please log in."
             setUltDest'
             redirect RedirectTemporary RootR
+
+instance YesodJquery OR where
+    urlJqueryJs _ = Right "http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"
+    urlJqueryUiJs _ = Right "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.1/jquery-ui.js"
+    urlJqueryUiCss _ = Right "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.1/themes/ui-lightness/jquery-ui.css"

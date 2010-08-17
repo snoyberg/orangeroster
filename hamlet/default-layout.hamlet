@@ -3,7 +3,15 @@
     %head
         %title $pageTitle.pc$
         ^pageHead.pc^
+        %link!rel=stylesheet!href=@StaticR.styles_default_css@
     %body
-        $maybe mmsg msg
-            %p.message $msg$
-        ^pageBody.pc^
+        %header
+            #banner Orange Roster
+            $maybe user u
+                #userbar
+                    Welcome $u$. $
+                    %a!href=@AuthR.Logout@ Logout
+        #wrapper
+            $maybe mmsg msg
+                %p.message $msg$
+            ^pageBody.pc^

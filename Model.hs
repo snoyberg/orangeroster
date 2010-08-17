@@ -1,11 +1,12 @@
 {-# LANGUAGE QuasiQuotes, TypeFamilies, GeneralizedNewtypeDeriving #-}
 module Model where
 
-import Yesod (liftIO, GHandler)
+import Yesod (liftIO, GHandler, MonadCatchIO)
 import Database.Persist
 import Database.Persist.GenericSql
 import Data.Time (UTCTime, getCurrentTime)
 import Control.Arrow ((&&&))
+import Control.Monad (liftM)
 
 mkPersist [$persist|
 Profile
@@ -18,6 +19,7 @@ User
     creation UTCTime
     displayName String
     profile ProfileId
+    password String null update
 FacebookCred
     user UserId
     ident String Eq
@@ -25,11 +27,18 @@ FacebookCred
 Email
     owner UserId Eq
     email String
+    verkey String null update
+    verified Bool update
     UniqueEmail email
+
 Share
     source UserId
     dest UserId Eq
     UniqueShare source dest
+ShareOffer
+    source UserId
+    dest String Eq
+    UniqueShareOffer source dest
 
 Entry
     owner UserId Eq
@@ -37,7 +46,13 @@ Entry
     title String Asc
 |]
 
-loadProfile :: ProfileId -> SqlPersist (GHandler s y) [(String, String)]
+loadProfile :: MonadCatchIO m => ProfileId -> SqlPersist m [(String, String)]
 loadProfile eid =
     map (profileDataName . snd &&& profileDataValue . snd)
-        `fmap` selectList [ProfileDataProfileEq eid] [] 0 0
+        `liftM` selectList [ProfileDataProfileEq eid] [] 0 0
+
+newUser :: MonadCatchIO m => String -> SqlPersist m UserId
+newUser dn = do
+    now <- liftIO getCurrentTime
+    eid <- insert $ Profile now
+    insert $ User now dn eid Nothing

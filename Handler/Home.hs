@@ -4,6 +4,7 @@
 module Handler.Home where
 
 import Yesod
+import Yesod.Form.Jquery
 import App
 import Settings
 import Model
@@ -25,10 +26,17 @@ getHomeR = do
         return (srcid, src)
         )
     entries <- runDB $ selectList [EntryOwnerEq uid] [EntryTitleAsc] 0 0
+    let notes = ["FIXME: Set up notifications" :: String]
+    y <- getYesod
     applyLayoutW $ do
         setTitle "Homepage"
         form <- extractBody wform
         addBody $(hamletFile "home")
+        addScriptEither $ urlJqueryJs y
+        addScriptEither $ urlJqueryUiJs y
+        addStylesheetEither $ urlJqueryUiCss y
+        addStyle $(cassiusFile "home")
+        addJavaScript $(juliusFile "home")
 
 postHomeR :: Handler OR RepHtml
 postHomeR = do

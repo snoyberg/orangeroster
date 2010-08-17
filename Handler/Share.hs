@@ -17,9 +17,12 @@ postShareR = do
             runDB $ do
                 x <- getBy $ UniqueEmail email
                 case x of
-                    Just (_, Email dest _) -> do
+                    Just (_, Email dest _ _ _) -> do
                         _ <- insert $ Share uid dest
                         lift $ setMessage "Sharing initiated"
-                    Nothing -> return () -- FIXME add a share request, send an invite, etc
-        _ -> return ()
+                    Nothing -> do
+                        insertBy $ ShareOffer uid email
+                        lift $ setMessage "Sharing offer initiated"
+                        -- FIXME send an email invite
+        _ -> setMessage "Invalid email address submitted"
     redirect RedirectTemporary HomeR

@@ -1,0 +1,14 @@
+$$(function() {
+    $$("#tabs").tabs({
+        /*
+        cookie: {
+            expires: 1
+        }
+        */
+    });
+    $$("form.hidden").hide().before("<button class='hidden-form-shower' href='#'>Add</button>");
+    $$("button.hidden-form-shower").button().click(function(){
+        $$(this).hide().next().show('slow');
+        return false;
+    });
+});

@@ -3,3 +3,7 @@
 
 %p
     %a!href=@AuthR.StartFacebookR@ Login via Facebook
+%p
+    %a!href=@AuthR.EmailRegisterR@ Create new account
+%p
+    %a!href=@AuthR.EmailLoginR@ Login via email

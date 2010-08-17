@@ -10,7 +10,7 @@
             $maybe user u
                 #userbar
                     Welcome $u$. $
-                    %a!href=@AuthR.Logout@ Logout
+                    %a!href=@AuthR.LogoutR@ Logout
         #wrapper
             $maybe mmsg msg
                 %p.message $msg$

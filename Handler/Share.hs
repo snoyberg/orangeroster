@@ -6,7 +6,6 @@ module Handler.Share where
 import Yesod
 import App
 import Model
-import Control.Monad.Trans.Class (lift)
 import Data.Time (getCurrentTime)
 
 postShareR :: Handler OR ()
@@ -25,7 +24,7 @@ postShareR = do
                         _ <- insert $ Note dest (string msg) now
                         lift $ setMessage "Sharing initiated"
                     Nothing -> do
-                        insertBy $ ShareOffer uid email
+                        _ <- insertBy $ ShareOffer uid email
                         lift $ setMessage "Sharing offer initiated"
                         -- FIXME send an email invite
         _ -> setMessage "Invalid email address submitted"

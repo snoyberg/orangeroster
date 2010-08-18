@@ -6,7 +6,7 @@ $$(function() {
     });
     $$("form.hidden").hide().before("<button class='hidden-form-shower'>Add</button>");
     $$("button.hidden-form-shower").click(function(){
-        $$(this).hide().next().show('slow');
+        $$(this).hide().next().show();
         return false;
     });
     $$("#change-display-name").hide().before("<button id='change-name-button'>Change</button>");

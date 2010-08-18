@@ -1,0 +1,76 @@
+%h2 Phone numbers
+%table.profile
+    $forall pdPhone.profile p
+        %tr
+            %th $fst.p$
+            %td $snd.p$
+%form.hidden!method=post!action=@dest@
+    %input!type=hidden!name=type!value=phone
+    Phone type: $
+    %select!name=name
+        %option!value=Home Home
+        %option!value=Cell Cell
+        %option!value=Work Work
+    \ $
+    %input!type=tel!name=value
+    \ $
+    %input!type=submit!value=Add
+%h2 Addresses
+%table.profile
+    $forall pdAddress.profile p
+        %tr
+            %th $fst.p$
+            %td $snd.p$
+%form.hidden!method=post!action=@dest@
+    %input!type=hidden!name=type!value=address
+    %table
+        %tr
+            %th Location
+            %td
+                %select!name=name
+                    %option!value=Home Home
+                    %option!value=Work Work
+        %tr
+            %th Address
+            %td
+                %textarea!name=value
+        %tr
+            %td!colspan=2
+                %input!type=submit!value=Add
+%h2 Screen names
+%table.profile
+    $forall pdScreenName.profile p
+        %tr
+            %th $fst.p$
+            %td $snd.p$
+%form.hidden!method=post!action=@dest@
+    %input!type=hidden!name=type!value=screen-name
+    Service: $
+    %select!name=name
+        %option!value=AIM AIM
+        %option!value="Yahoo!" Yahoo!
+        %option!value=Facebook Facebook
+    \ $
+    %input!type=text!name=value
+    \ $
+    %input!type=submit!value=Add
+%h2 Miscellaneous
+%table.profile
+    $forall pdMisc.profile p
+        %tr
+            %th $fst.p$
+            %td $snd.p$
+%form.hidden!method=post!action=@dest@
+    %input!type=hidden!name=type!value=misc
+    %table
+        %tr
+            %th Name
+            %td
+                %input!type=text!name=name
+        %tr
+            %th Value
+            %td
+                %textarea!name=value
+        %tr
+            %td!colspan=2
+                %input!type=submit!value=Add

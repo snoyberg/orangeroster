@@ -37,20 +37,7 @@
             %input!type=email!name=email
             \ $
             %input!type=submit!value="Add new email address"
-        %h2 Phone numbers
-        %h2 Addresses
-        %h2 Miscellaneous
-        %table.profile
-            $forall profile p
-                %tr
-                    %th $fst.p$
-                    %td $snd.p$
-        %form.hidden!method=post!enctype=$enctype$
-            %table
-                ^form^
-                %tr
-                    %td!colspan=2
-                        %input!type=submit!value=Add
+        ^showProfile'^
     #sharing
         %form!method=post!action=@ShareR@
             Email $

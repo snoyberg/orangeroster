@@ -17,7 +17,6 @@ import qualified Data.ByteString.Lazy as L
 import Web.Routes.Site
 import Database.Persist.GenericSql
 import Model
-import Data.Time (getCurrentTime)
 import StaticFiles
 
 data OR = OR

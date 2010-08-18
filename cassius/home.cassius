@@ -1,4 +1,4 @@
 table.profile td, table.profile th
     padding: 3px
 .ui-widget .ui-widget.smaller-font
-    font-size: 60%
+    font-size: 80%

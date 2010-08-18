@@ -4,11 +4,8 @@
 module Handler.Note where
 
 import Yesod
-import Yesod.Form.Jquery
 import App
-import Settings
 import Model
-import Control.Applicative
 
 postNoteCloseR :: NoteId -> Handler OR ()
 postNoteCloseR nid = do

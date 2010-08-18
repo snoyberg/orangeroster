@@ -4,6 +4,7 @@
 module Handler.Home where
 
 import Yesod
+import Yesod.Form.Core
 import Yesod.Form.Jquery
 import App
 import Settings
@@ -11,17 +12,29 @@ import Model
 import Control.Applicative
 import StaticFiles
 
-entryFormlet :: Formlet s m (String, String)
-entryFormlet p = fieldsToTable $ (,)
-           <$> stringField "Name" (fmap fst p)
-           <*> stringField "Value" (fmap snd p)
+entryForm :: FormInput s m (PType, String, String)
+entryForm = pure (,,)
+            <*> ptypeForm "type"
+            <*> stringInput "name"
+            <*> stringInput "value"
+
+ptypeForm :: String -> FormInput s m PType
+ptypeForm name = GForm $ do
+    env <- askParams
+    let res = case lookup name env of
+                Nothing -> FormMissing
+                Just "phone" -> FormSuccess PTPhone
+                Just "address" -> FormSuccess PTAddress
+                Just "screen-name" -> FormSuccess PTScreenName
+                Just "misc" -> FormSuccess PTMisc
+                Just x -> FormFailure ["Invalid PType: " ++ x]
+    return (res, mempty, UrlEncoded)
 
 getHomeR :: Handler OR RepHtml
 getHomeR = do
     (uid, u) <- reqUserId
     profile <- runDB $ loadProfile $ userProfile u
     emails <- runDB $ selectList [EmailOwnerEq uid] [] 0 0
-    (_, wform, enctype) <- runFormGet $ entryFormlet Nothing
     shares <- runDB $ selectList [ShareDestEq uid] [] 0 0 >>= mapM (\(_, Share srcid _) -> do
         src <- get404 srcid
         return (srcid, src)
@@ -33,7 +46,7 @@ getHomeR = do
     y <- getYesod
     applyLayoutW $ do
         setTitle "Homepage"
-        form <- extractBody wform
+        let showProfile' = showProfile profile HomeR
         addBody $(hamletFile "home")
         addScriptEither $ urlJqueryJs y
         addScriptEither $ urlJqueryUiJs y
@@ -42,28 +55,26 @@ getHomeR = do
         addStyle $(cassiusFile "home")
         addJavascript $(juliusFile "home")
 
-postHomeR :: Handler OR RepHtml
+data PType = PTPhone | PTAddress | PTScreenName | PTMisc
+
+postHomeR :: Handler OR ()
 postHomeR = do
-    (uid, u) <- reqUserId
-    let eid = userProfile u
-    (x, wform, enctype) <- runFormPost $ entryFormlet Nothing
+    (_, u) <- reqUserId
+    insertProfile $ userProfile u
+    redirect RedirectTemporary HomeR
+
+insertProfile :: ProfileId -> Handler OR ()
+insertProfile pid = do
+    (x, _, _) <- runFormPost entryForm
     case x of
-        FormSuccess (k, v) -> do
-            _ <- runDB $ insert $ ProfileData eid k v
-            setMessage "Data added to profile"
-            redirect RedirectTemporary HomeR
-        _ -> return ()
-    applyLayoutW $ do
-        setTitle "Add to profile"
-        form <- extractBody wform
-        addBody [$hamlet|
-%form!method=post!enctype=$enctype$
-    %table
-        ^form^
-        %tr
-            %td!colspan=2
-                %input!type=submit!value=Add
-|]
+        FormSuccess (pt, k, v) -> do
+            case pt of
+                PTPhone -> runDB $ insert (Phone pid k v) >> return ()
+                PTAddress -> runDB $ insert (Address pid k $ Textarea v) >> return ()
+                PTScreenName -> runDB $ insert (ScreenName pid k v) >> return ()
+                PTMisc -> runDB $ insert (Misc pid k $ Textarea v) >> return ()
+            setMessage "Data added"
+        _ -> setMessage "Invalid data submitted"
 
 postDisplayNameR :: Handler OR ()
 postDisplayNameR = do
@@ -75,3 +86,6 @@ postDisplayNameR = do
             setMessage $ string $ "Display name changed to " ++ dn
         _ -> setMessage "There was an error in your submission"
     redirect RedirectTemporary HomeR
+
+showProfile :: ProfileData -> ORRoute -> Hamlet ORRoute
+showProfile profile dest = $(hamletFile "show-profile")

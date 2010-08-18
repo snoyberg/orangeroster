@@ -20,8 +20,6 @@ import Handler.Profile
 import Handler.Entry
 import Handler.Note
 
-import Control.Monad (join)
-
 mkYesodDispatch "OR" resourcesOR
 
 getFaviconR :: Handler OR ()
@@ -31,7 +29,11 @@ withOR :: (Application -> IO a) -> IO a
 withOR f = Settings.withConnectionPool $ \p -> do
     flip runConnectionPool p $ runMigration $ do
         migrate (undefined :: Profile)
-        migrate (undefined :: ProfileData)
+        migrate (undefined :: Phone)
+        migrate (undefined :: Address)
+        migrate (undefined :: ScreenName)
+        migrate (undefined :: Misc)
+
         migrate (undefined :: User)
         migrate (undefined :: FacebookCred)
         migrate (undefined :: Email)
@@ -51,7 +53,7 @@ withOR f = Settings.withConnectionPool $ \p -> do
             , authFacebook = Just (facebookKey, facebookSecret, ["email"])
             }
 
---emailSettings :: AuthEmailSettings
+emailSettings :: ConnectionPool -> AuthEmailSettings
 emailSettings p = AuthEmailSettings
     { addUnverified = \email verkey -> flip runConnectionPool p $ do
         uid <- newUser email

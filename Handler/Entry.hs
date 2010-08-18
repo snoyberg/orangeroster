@@ -5,11 +5,9 @@ module Handler.Entry where
 
 import Yesod
 import App
-import Settings
 import Model
-import Control.Applicative
 import Data.Time
-import Handler.Home (entryFormlet)
+import Handler.Home (insertProfile, showProfile)
 import Control.Monad (unless)
 
 postEntriesR :: Handler OR ()
@@ -31,36 +29,16 @@ postEntriesR = do
 getEntryR :: EntryId -> Handler OR RepHtml
 getEntryR eid = do
     (uid, _) <- reqUserId
-    Entry uid' pid name <- runDB $ get404 eid
+    Entry uid' pid _ <- runDB $ get404 eid
     unless (uid == uid') $ permissionDenied "You do not own that entry."
     profile <- runDB $ loadProfile pid
-    (_, wform, enctype) <- runFormGet $ entryFormlet Nothing
-    applyLayoutW $ do
-        setTitle $ string name
-        form <- extractBody wform
-        addBody $(hamletFile "entry")
+    let dest = EntryR eid
+    hamletToRepHtml $ showProfile profile dest
 
-postEntryR :: EntryId -> Handler OR RepHtml
+postEntryR :: EntryId -> Handler OR ()
 postEntryR eid = do
     (uid, _) <- reqUserId
-    Entry uid' pid name <- runDB $ get404 eid
+    Entry uid' pid _ <- runDB $ get404 eid
     unless (uid == uid') $ permissionDenied "You do not own that entry."
-    (res, wform, enctype) <- runFormPost $ entryFormlet Nothing
-    case res of
-        FormSuccess (k, v) -> do
-            _ <- runDB $ insert $ ProfileData pid k v
-            setMessage "Data added to entry"
-            redirect RedirectTemporary $ EntryR eid
-        _ -> return ()
-    applyLayoutW $ do
-        setTitle $ string name
-        form <- extractBody wform
-        addBody [$hamlet|
-%h1 $name$
-%form!method=post!enctype=$enctype$
-    %table
-        ^form^
-        %tr
-            %td!colspan=2
-                %input!type=submit
-|]
+    insertProfile pid
+    redirect RedirectTemporary $ EntryR eid

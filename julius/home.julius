@@ -1,14 +1,26 @@
 $$(function() {
     $$("#tabs").tabs({
-        /*
         cookie: {
             expires: 1
         }
-        */
     });
-    $$("form.hidden").hide().before("<button class='hidden-form-shower' href='#'>Add</button>");
-    $$("button.hidden-form-shower").button().click(function(){
+    $$("form.hidden").hide().before("<button class='hidden-form-shower'>Add</button>");
+    $$("button.hidden-form-shower").click(function(){
         $$(this).hide().next().show('slow');
         return false;
     });
+    $$("#change-display-name").hide().before("<button id='change-name-button'>Change</button>");
+    $$("#change-name-button").click(function(){
+        $$(this).hide().prev().hide().end().next().show();
+        return false;
+    });
+    $$("#book > div.accordion").accordion({
+        active: false,
+        autoHeight: false,
+        change: function(event, ui) {
+            var a = ui.newContent.children("a.ajax-load-content");
+            a.parent().load(a.attr("href"));
+        }
+    });
+    $$("input[type=submit], button").button().addClass("smaller-font");
 });

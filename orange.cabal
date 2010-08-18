@@ -18,3 +18,4 @@ Executable simple-server
                             time,
                             transformers,
                             MonadCatchIO-transformers
+  ghc-options:              -O0 -Wall -Werror

@@ -1,4 +1,4 @@
 table.profile td, table.profile th
     padding: 3px
-button.hidden-form-shower.ui-widget
+.ui-widget .ui-widget.smaller-font
     font-size: 60%

@@ -14,8 +14,20 @@
         $else
             %ul
                 $forall notes n
-                    %li $n$
+                    %li
+                        %div $noteContent.snd.fst.n$
+                        %form!method=post!action=@NoteCloseR.fst.fst.n@
+                            %input!type=submit!value=Close
+                        $forall snd.n l
+                            %a!href=$noteLinkDest.snd.l$ $noteLinkText.snd.l$
     #profile
+        %div
+            %span Your display name is $userDisplayName.u$.
+            %form#change-display-name!method=post!action=@DisplayNameR@
+                Change display name to $
+                %input!type=text!name=display-name!value=$userDisplayName.u$
+                \ $
+                %input!type=submit!value="Change display name"
         %h2 Emails
         %ul
             $forall emails email
@@ -60,10 +72,9 @@
             %input!type=submit!value="Add new entry"
         %h3 My entries
         %h3 Offer delete an entry/rename an entry.
-        %table
+        .accordion
             $forall entries e
-                %tr
-                    %td
-                        %a!href=@EntryR.fst.e@ $entryTitle.snd.e$
-                    %td
-                        %span.ui-icon.ui-icon-trash
+                %h3
+                    %a!href="#" $entryTitle.snd.e$
+                %div!style=height:400px
+                    %a.ajax-load-content!href=@EntryR.fst.e@ $entryTitle.snd.e$

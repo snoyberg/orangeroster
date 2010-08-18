@@ -10,4 +10,5 @@ import Settings
 getRootR :: Handler OR RepHtml
 getRootR = do
     applyLayoutW $ do
+        setTitle "OrangeRoster Homepage"
         addBody $(hamletFile "root")

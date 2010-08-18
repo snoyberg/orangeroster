@@ -31,6 +31,7 @@ mkYesodData "OR" [$parseRoutes|
 /home HomeR GET POST
 /share ShareR POST
 /profile/#UserId ProfileR GET
+/display-name DisplayNameR POST
 
 /entries EntriesR POST
 /entry/#EntryId EntryR GET POST
@@ -38,6 +39,8 @@ mkYesodData "OR" [$parseRoutes|
 /static StaticR Static getStatic
 /favicon.ico FaviconR GET
 /auth AuthR Auth getAuth
+
+/note/#NoteId/close NoteCloseR POST
 |]
 
 instance Yesod OR where
@@ -146,6 +149,6 @@ reqUserId = do
             redirect RedirectTemporary RootR
 
 instance YesodJquery OR where
-    urlJqueryJs _ = Right "http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"
-    urlJqueryUiJs _ = Right "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.1/jquery-ui.js"
-    urlJqueryUiCss _ = Right "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.1/themes/ui-lightness/jquery-ui.css"
+    urlJqueryJs _ = Left $ StaticR jquery_js
+    urlJqueryUiJs _ = Left $ StaticR jquery_ui_js
+    urlJqueryUiCss _ = Left $ StaticR jquery_ui_css

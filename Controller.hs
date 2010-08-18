@@ -18,6 +18,7 @@ import Handler.Home
 import Handler.Share
 import Handler.Profile
 import Handler.Entry
+import Handler.Note
 
 import Control.Monad (join)
 
@@ -37,6 +38,8 @@ withOR f = Settings.withConnectionPool $ \p -> do
         migrate (undefined :: Share)
         migrate (undefined :: ShareOffer)
         migrate (undefined :: Entry)
+        migrate (undefined :: Note)
+        migrate (undefined :: NoteLink)
     let h = OR s (a p) p
     toWaiApp h >>= f
   where

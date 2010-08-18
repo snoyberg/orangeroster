@@ -13,5 +13,7 @@
                     %a!href=@AuthR.LogoutR@ Logout
         #wrapper
             $maybe mmsg msg
-                %p.message $msg$
+                %p.ui-state-highlight
+                    %span.ui-icon.ui-icon-info!style="float:left"
+                    $msg$
             ^pageBody.pc^

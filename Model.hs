@@ -1,7 +1,7 @@
 {-# LANGUAGE QuasiQuotes, TypeFamilies, GeneralizedNewtypeDeriving #-}
 module Model where
 
-import Yesod (liftIO, GHandler, MonadCatchIO)
+import Yesod (liftIO, GHandler, MonadCatchIO, Html)
 import Database.Persist
 import Database.Persist.GenericSql
 import Data.Time (UTCTime, getCurrentTime)
@@ -17,7 +17,7 @@ ProfileData
     value String
 User
     creation UTCTime
-    displayName String
+    displayName String update
     profile ProfileId
     password String null update
 FacebookCred
@@ -44,6 +44,18 @@ Entry
     owner UserId Eq
     profile ProfileId
     title String Asc
+
+Note
+    user UserId Eq
+    content Html
+    creation UTCTime Desc
+    deriving
+NoteLink
+    note NoteId Eq
+    dest String
+    text Html
+    priority Int Asc
+    deriving
 |]
 
 loadProfile :: MonadCatchIO m => ProfileId -> SqlPersist m [(String, String)]

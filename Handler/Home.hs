@@ -9,6 +9,7 @@ import App
 import Settings
 import Model
 import Control.Applicative
+import StaticFiles
 
 entryFormlet :: Formlet s m (String, String)
 entryFormlet p = fieldsToTable $ (,)
@@ -26,7 +27,9 @@ getHomeR = do
         return (srcid, src)
         )
     entries <- runDB $ selectList [EntryOwnerEq uid] [EntryTitleAsc] 0 0
-    let notes = ["FIXME: Set up notifications" :: String]
+    notes <- runDB $ selectList [NoteUserEq uid] [NoteCreationDesc] 10 0 >>= mapM (\(nid, n) -> do
+        ls <- selectList [NoteLinkNoteEq nid] [NoteLinkPriorityAsc] 0 0
+        return ((nid, n), ls))
     y <- getYesod
     applyLayoutW $ do
         setTitle "Homepage"
@@ -34,6 +37,7 @@ getHomeR = do
         addBody $(hamletFile "home")
         addScriptEither $ urlJqueryJs y
         addScriptEither $ urlJqueryUiJs y
+        addScript $ StaticR jquery_cookie_js
         addStylesheetEither $ urlJqueryUiCss y
         addStyle $(cassiusFile "home")
         addJavascript $(juliusFile "home")
@@ -60,3 +64,14 @@ postHomeR = do
             %td!colspan=2
                 %input!type=submit!value=Add
 |]
+
+postDisplayNameR :: Handler OR ()
+postDisplayNameR = do
+    (uid, _) <- reqUserId
+    (res, _, _) <- runFormPost $ stringInput "display-name"
+    case res of
+        FormSuccess dn -> do
+            runDB $ update uid [UserDisplayName dn]
+            setMessage $ string $ "Display name changed to " ++ dn
+        _ -> setMessage "There was an error in your submission"
+    redirect RedirectTemporary HomeR

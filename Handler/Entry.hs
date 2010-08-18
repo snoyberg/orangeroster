@@ -33,8 +33,7 @@ getEntryR eid = do
     Entry uid' pid name <- runDB $ get404 eid
     unless (uid == uid') $ permissionDenied "You do not own that entry."
     profile <- runDB $ loadProfile pid
-    let dest = EntryR eid
-    let showProfile' = showProfile profile dest
+    let showProfile' = showProfile profile $ Just $ EntryR eid
     hamletToRepHtml $(hamletFile "entry")
 
 postEntryR :: EntryId -> Handler OR ()

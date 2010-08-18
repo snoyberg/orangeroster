@@ -1,0 +1,10 @@
+%table.profile
+    $forall rows p
+        %tr
+            %th $fst.p$
+            %td $snd.p$
+            $maybe dest _
+                %td
+                    %span.ui-icon.ui-icon-wrench
+                %td
+                    %span.ui-icon.ui-icon-trash

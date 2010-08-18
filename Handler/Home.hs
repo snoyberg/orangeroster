@@ -11,6 +11,12 @@ import Settings
 import Model
 import Control.Applicative
 import StaticFiles
+import Data.Monoid
+import Data.List (groupBy, sortBy)
+import Data.Function (on)
+import Data.Ord (comparing)
+import Control.Monad (forM)
+import Control.Arrow ((&&&))
 
 entryForm :: FormInput s m (PType, String, String)
 entryForm = pure (,,)
@@ -30,15 +36,45 @@ ptypeForm name = GForm $ do
                 Just x -> FormFailure ["Invalid PType: " ++ x]
     return (res, mempty, UrlEncoded)
 
+data ShareType = ShareNone | ShareTo | ShareFrom | ShareBoth
+    deriving Eq
+instance Monoid ShareType where
+    mempty = ShareNone
+    mappend ShareNone x = x
+    mappend x ShareNone = x
+    mappend ShareTo ShareTo = ShareTo
+    mappend ShareFrom ShareFrom = ShareFrom
+    mappend _ _ = ShareBoth
+
+data ShareInfo = ShareInfo
+    { siUid :: UserId
+    , siUser :: User
+    , siShareTo :: Bool
+    , siShareFrom :: Bool
+    }
+
 getHomeR :: Handler OR RepHtml
 getHomeR = do
     (uid, u) <- reqUserId
     profile <- runDB $ loadProfile $ userProfile u
     emails <- runDB $ selectList [EmailOwnerEq $ Just uid] [] 0 0
-    shares <- runDB $ selectList [ShareDestEq uid] [] 0 0 >>= mapM (\(_, Share srcid _) -> do
-        src <- get404 srcid
-        return (srcid, src)
+    shares1 <- runDB $ selectList [ShareDestEq uid] [] 0 0 >>= mapM (\(_, Share srcid _) ->
+        return (srcid, ShareFrom)
         )
+    shares2 <- runDB $ selectList [ShareSourceEq uid] [] 0 0 >>= mapM (\(_, Share _ dstid) ->
+        return (dstid, ShareTo)
+        )
+    let shares' = map (fst . head &&& map snd) $ groupBy ((==) `on` fst) $ sortBy (comparing fst)
+                $ shares1 ++ shares2
+    shares <- runDB $ forM shares' $ \(uid', st') -> do
+        u' <- get404 uid'
+        let st = mconcat st'
+        return ShareInfo
+            { siUid = uid'
+            , siUser = u'
+            , siShareTo = st `elem` [ShareTo, ShareBoth]
+            , siShareFrom = st `elem` [ShareFrom, ShareBoth]
+            }
     entries <- runDB $ selectList [EntryOwnerEq uid] [EntryTitleAsc] 0 0
     notes <- runDB $ selectList [NoteUserEq uid] [NoteCreationDesc] 10 0 >>= mapM (\(nid, n) -> do
         ls <- selectList [NoteLinkNoteEq nid] [NoteLinkPriorityAsc] 0 0
@@ -46,7 +82,7 @@ getHomeR = do
     y <- getYesod
     applyLayoutW $ do
         setTitle "Homepage"
-        let showProfile' = showProfile profile HomeR
+        let showProfile' = showProfile profile $ Just HomeR
         addBody $(hamletFile "home")
         addScriptEither $ urlJqueryJs y
         addScriptEither $ urlJqueryUiJs y
@@ -87,5 +123,7 @@ postDisplayNameR = do
         _ -> setMessage "There was an error in your submission"
     redirect RedirectTemporary HomeR
 
-showProfile :: ProfileData -> ORRoute -> Hamlet ORRoute
-showProfile profile dest = $(hamletFile "show-profile")
+showProfile :: ProfileData -> Maybe ORRoute -> Hamlet ORRoute
+showProfile profile dest = do
+    let profileTable rows = $(hamletFile "profile-table")
+    $(hamletFile "show-profile")

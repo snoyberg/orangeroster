@@ -35,4 +35,8 @@ $$(function() {
         $$(this).closest("form").submit();
         return false;
     });
+    $$("a.share-link").click(function(){
+        $$("#share-pane").load($$(this).attr("href"));
+        return false;
+    });
 });

@@ -29,9 +29,12 @@ data OR = OR
 mkYesodData "OR" [$parseRoutes|
 / RootR GET
 /home HomeR GET POST
-/share ShareR POST
 /profile/#UserId ProfileR GET
 /display-name DisplayNameR POST
+
+/share ShareR POST
+/share/#UserId ShareUserR POST
+/share/#UserId/stop StopShareUserR POST
 
 /entries EntriesR POST
 /entry/#EntryId EntryR GET POST

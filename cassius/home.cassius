@@ -1,4 +1,32 @@
 table.profile td, table.profile th
     padding: 3px
+    border: 1px solid #ccc
+    text-align: left
+table.profile
+    border-collapse: collapse
 .ui-widget .ui-widget.smaller-font
     font-size: 80%
+textarea
+    width: 300px
+    height: 70px
+#notifications ul
+    list-style: none
+    padding: 0
+#notifications .pin
+    float: left
+    margin-right: 10px
+input[type=email]
+    width: 300px
+#share-table-wrapper
+    height: 400px
+    overflow: auto
+    width: 300px
+    float: left
+    margin-right: 50px
+#share-pane
+    float: left
+    min-width: 400px
+.weight
+    clear: both
+#sharing > form
+    margin-bottom: 20px

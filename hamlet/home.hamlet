@@ -15,6 +15,7 @@
             %ul
                 $forall notes n
                     %li
+                        %span.pin.ui-icon.ui-icon-pin-w.pin
                         %div $noteContent.snd.fst.n$
                         %form!method=post!action=@NoteCloseR.fst.fst.n@
                             %input!type=submit!value=Close
@@ -31,8 +32,10 @@
         %h2 Emails
         %ul
             $forall emails email
-                %li $emailEmail.snd.email$
-        %form!action=/FIXME/
+                %li!style=list-style:none
+                    %span.ui-icon.ui-icon-mail-closed!style=float:left;margin-right:10px
+                    $emailEmail.snd.email$
+        %form.hidden!action=/FIXME/
             Add new email address: $
             %input!type=email!name=email
             \ $
@@ -44,13 +47,25 @@
             %input!type=email!name=email
             \ $
             %input!type=submit!value=Share
-        %h3 Share FIXME: one table, I'm share with, they share with me. Show "share alike" button and "stop sharing". Show list of share offers.
-        %h3 Sharing with me
-        %ul
-            $forall shares s
-                %li
-                    %a!href=@ProfileR.fst.s@
-                        $userDisplayName.snd.s$
+        #share-table-wrapper
+            %table
+                $forall shares s
+                    %tr
+                        %td
+                            $if siShareFrom.s
+                                %a.share-link!href=@ProfileR.siUid.s@
+                                    $userDisplayName.siUser.s$
+                            $else
+                                $userDisplayName.siUser.s$
+                        %td
+                            $if siShareTo.s
+                                %form!method=post!action=@StopShareUserR.siUid.s@
+                                    %input!type=submit!value="Stop Sharing"
+                            $else
+                                %form!method=post!action=@ShareUserR.siUid.s@
+                                    %button Share alike
+        #share-pane
+        .weight
     #book
         %form!method=post!action=@EntriesR@
             Add new entry named $

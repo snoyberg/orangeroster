@@ -27,7 +27,7 @@ Email
     UniqueEmail email
 
 Share
-    source UserId
+    source UserId Eq
     dest UserId Eq
     UniqueShare source dest
 ShareOffer
@@ -37,20 +37,20 @@ ShareOffer
 
 Phone
     profile ProfileId Eq
-    name String
-    value String
+    name String Asc
+    value String Asc
 Address
     profile ProfileId Eq
-    name String
-    value Textarea
+    name String Asc
+    value Textarea Asc
 ScreenName
     profile ProfileId Eq
-    name String
-    value String
+    name String Asc
+    value String Asc
 Misc
     profile ProfileId Eq
-    name String
-    value Textarea
+    name String Asc
+    value Textarea Asc
 
 Entry
     owner UserId Eq
@@ -80,13 +80,13 @@ data ProfileData = ProfileData
 loadProfile :: MonadCatchIO m => ProfileId -> SqlPersist m ProfileData
 loadProfile eid = do
     phones <- map (phoneName . snd &&& phoneValue . snd)
-                `liftM` selectList [PhoneProfileEq eid] [] 0 0
+                `liftM` selectList [PhoneProfileEq eid] [PhoneNameAsc, PhoneValueAsc] 0 0
     addresses <- map (addressName . snd &&& addressValue . snd)
-                `liftM` selectList [AddressProfileEq eid] [] 0 0
+                `liftM` selectList [AddressProfileEq eid] [AddressNameAsc, AddressValueAsc] 0 0
     screenNames <- map (screenNameName . snd &&& screenNameValue . snd)
-                `liftM` selectList [ScreenNameProfileEq eid] [] 0 0
+                `liftM` selectList [ScreenNameProfileEq eid] [ScreenNameNameAsc, ScreenNameValueAsc] 0 0
     miscs <- map (miscName . snd &&& miscValue . snd)
-                `liftM` selectList [MiscProfileEq eid] [] 0 0
+                `liftM` selectList [MiscProfileEq eid] [MiscNameAsc, MiscValueAsc] 0 0
     return $ ProfileData phones addresses screenNames miscs
 
 newUser :: MonadCatchIO m => String -> SqlPersist m UserId

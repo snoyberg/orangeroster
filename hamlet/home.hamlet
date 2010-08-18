@@ -57,11 +57,13 @@
             %input!type=text!name=name
             \ $
             %input!type=submit!value="Add new entry"
-        %h3 My entries
-        %h3 Offer delete an entry/rename an entry.
         .accordion
             $forall entries e
                 %h3
+                    %form.delete-entry!style="float:right"!method=post!action=@DeleteEntryR.fst.e@
+                        %button
+                            %span.ui-icon.ui-icon-trash
+                            %span!style=margin-left:16px Delete
                     %a!href="#" $entryTitle.snd.e$
                 %div!style=height:400px
                     %a.ajax-load-content!href=@EntryR.fst.e@ $entryTitle.snd.e$

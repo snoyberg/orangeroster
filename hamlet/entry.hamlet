@@ -1,0 +1,6 @@
+%form!method=post!action=@EntryNameR.eid@
+    Rename to $
+    %input!type=text!name=name!value=$name$
+    \ $
+    %input!type=submit!value=Rename
+^showProfile'^

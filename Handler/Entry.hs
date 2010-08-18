@@ -9,6 +9,7 @@ import Model
 import Data.Time
 import Handler.Home (insertProfile, showProfile)
 import Control.Monad (unless)
+import Settings
 
 postEntriesR :: Handler OR ()
 postEntriesR = do
@@ -20,20 +21,21 @@ postEntriesR = do
                     redirect RedirectTemporary HomeR
                 Just x -> return x
     now <- liftIO getCurrentTime
-    eid <- runDB $ do
+    _ <- runDB $ do
         pid <- insert $ Profile now
         insert $ Entry uid pid name
     setMessage "Your entry has been created."
-    redirect RedirectTemporary $ EntryR eid
+    redirect RedirectTemporary HomeR
 
 getEntryR :: EntryId -> Handler OR RepHtml
 getEntryR eid = do
     (uid, _) <- reqUserId
-    Entry uid' pid _ <- runDB $ get404 eid
+    Entry uid' pid name <- runDB $ get404 eid
     unless (uid == uid') $ permissionDenied "You do not own that entry."
     profile <- runDB $ loadProfile pid
     let dest = EntryR eid
-    hamletToRepHtml $ showProfile profile dest
+    let showProfile' = showProfile profile dest
+    hamletToRepHtml $(hamletFile "entry")
 
 postEntryR :: EntryId -> Handler OR ()
 postEntryR eid = do
@@ -41,4 +43,26 @@ postEntryR eid = do
     Entry uid' pid _ <- runDB $ get404 eid
     unless (uid == uid') $ permissionDenied "You do not own that entry."
     insertProfile pid
-    redirect RedirectTemporary $ EntryR eid
+    redirect RedirectTemporary HomeR
+
+postEntryNameR :: EntryId -> Handler OR ()
+postEntryNameR eid = do
+    (uid, _) <- reqUserId
+    Entry uid' _ _ <- runDB $ get404 eid
+    unless (uid == uid') $ permissionDenied "You do not own that entry."
+    (res, _, _) <- runFormPost $ stringInput "name"
+    case res of
+        FormSuccess name -> do
+            runDB $ update eid [EntryTitle name]
+            setMessage "Entry name changed"
+        _ -> setMessage "Invalid name submitted"
+    redirect RedirectTemporary HomeR
+
+postDeleteEntryR :: EntryId -> Handler OR ()
+postDeleteEntryR eid = do
+    (uid, _) <- reqUserId
+    Entry uid' _ _ <- runDB $ get404 eid
+    unless (uid == uid') $ permissionDenied "You do not own that entry."
+    runDB $ delete eid
+    setMessage "Entry deleted"
+    redirect RedirectTemporary HomeR

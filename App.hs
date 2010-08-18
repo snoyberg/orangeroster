@@ -5,6 +5,7 @@ module App
     , resourcesOR
     , Static
     , reqUserId
+    , clearUserId
     ) where
 
 import Yesod
@@ -34,12 +35,16 @@ mkYesodData "OR" [$parseRoutes|
 
 /entries EntriesR POST
 /entry/#EntryId EntryR GET POST
+/entry/#EntryId/name EntryNameR POST
+/entry/#EntryId/delete DeleteEntryR POST
 
 /static StaticR Static getStatic
 /favicon.ico FaviconR GET
 /auth AuthR Auth getAuth
 
 /note/#NoteId/close NoteCloseR POST
+
+/logout ORLogoutR GET
 |]
 
 instance Yesod OR where
@@ -75,39 +80,40 @@ instance YesodAuth OR where
             (AuthFacebook, Just dn, Just email) -> do
                 let ci = credsIdent c
                 x <- runDB $ getBy $ UniqueFacebook ci
+                me <- runDB $ getBy $ UniqueEmail email
                 uid <- case fmap (facebookCredUser . snd) x of
                             Just uid -> return uid
                             Nothing -> runDB $ do
-                                uid <- newUser dn
+                                uid <-
+                                    case me of
+                                        Just (_, Email (Just uid) _ _) -> return uid
+                                        Just (eid, Email Nothing _ _) -> do
+                                            uid <- newUser dn
+                                            update eid [EmailOwner $ Just uid]
+                                            return uid
+                                        Nothing -> do
+                                            uid <- newUser dn
+                                            _ <- insert $ Email (Just uid) email Nothing
+                                            return uid
                                 _ <- insert $ FacebookCred uid ci
                                 return uid
                 setUserId uid
-                runDB $ do
-                    me <- getBy $ UniqueEmail email
-                    case me of
-                        Nothing -> do
-                            _ <- insert $ Email uid email Nothing True
-                            -- Claim any share offers
-                            selectList [ShareOfferDestEq email] [] 0 0 >>= mapM_ (\(sid, s) -> do
-                                _ <- insert $ Share (shareOfferSource s) uid
-                                delete sid)
-                        Just _ -> do
-                            -- FIXME check if this is for a different
-                            -- account, and perhaps flag a merge request?
-                            return ()
+                runDB $ claimShares uid email
             (AuthEmail, _, Just email) -> do
                 uid <- runDB $ do
                     me <- getBy $ UniqueEmail email
                     uid <- case me of
+                        -- FIXME maybe this should never happen?
                         Nothing -> do
                             uid <- newUser email
-                            _ <- insert $ Email uid email Nothing True
+                            _ <- insert $ Email (Just uid) email Nothing
                             return uid
-                        Just (_, Email uid _ _ _) -> return uid
-                    -- Claim any share offers
-                    selectList [ShareOfferDestEq email] [] 0 0 >>= mapM_ (\(sid, s) -> do
-                        _ <- insert $ Share (shareOfferSource s) uid
-                        delete sid)
+                        Just (_, Email (Just uid) _ _) -> return uid
+                        Just (eid, Email Nothing _ _) -> do
+                            uid <- newUser email
+                            update eid [EmailOwner $ Just uid]
+                            return uid
+                    claimShares uid email
                     return uid
                 setUserId uid
             _ -> return ()
@@ -125,6 +131,9 @@ stringint s = case reads s of
 
 setUserId :: UserId -> GHandler s m ()
 setUserId = setSession userKey . intstring
+
+clearUserId :: GHandler s m ()
+clearUserId = deleteSession userKey
 
 maybeUserId :: GHandler s OR (Maybe (UserId, User))
 maybeUserId = do

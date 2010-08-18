@@ -19,6 +19,9 @@ import Handler.Share
 import Handler.Profile
 import Handler.Entry
 import Handler.Note
+import Handler.Auth
+
+import Data.Maybe (isJust)
 
 mkYesodDispatch "OR" resourcesOR
 
@@ -55,9 +58,8 @@ withOR f = Settings.withConnectionPool $ \p -> do
 
 emailSettings :: ConnectionPool -> AuthEmailSettings
 emailSettings p = AuthEmailSettings
-    { addUnverified = \email verkey -> flip runConnectionPool p $ do
-        uid <- newUser email
-        fmap fromIntegral $ insert $ Email uid email (Just verkey) False
+    { addUnverified = \email verkey -> flip runConnectionPool p $
+        fmap fromIntegral $ insert $ Email Nothing email (Just verkey)
     , sendVerifyEmail = \email verkey verurl -> do
         print ("FIXME sendVerifyEmail", email, verkey, verurl)
     , getVerifyKey = \emailid -> flip runConnectionPool p $ do
@@ -65,27 +67,35 @@ emailSettings p = AuthEmailSettings
         return $ maybe Nothing emailVerkey x
     , setVerifyKey = \emailid verkey -> flip runConnectionPool p $
         update (fromIntegral emailid) [EmailVerkey $ Just verkey]
-    , verifyAccount = \emailid -> flip runConnectionPool p $
-        update (fromIntegral emailid) [EmailVerified True]
-    , setPassword = \emailid' password -> flip runConnectionPool p $ do
+    , verifyAccount = \emailid' -> flip runConnectionPool p $ do
         let emailid = fromIntegral emailid'
         x <- get emailid
         case x of
             Nothing -> return ()
-            Just (Email uid _ _ _) -> do
+            Just (Email (Just _) _ _) -> return ()
+            Just (Email Nothing email _) -> do
+                uid <- newUser email
+                update emailid [EmailOwner $ Just uid]
+        update emailid [EmailVerkey Nothing]
+    , setPassword = \emailid' password -> flip runConnectionPool p $ do
+        let emailid = fromIntegral emailid'
+        x <- get emailid
+        case x of
+            Just (Email (Just uid) _ _) -> do
                 update uid [UserPassword $ Just password]
                 update emailid [EmailVerkey Nothing]
+            _ -> return ()
     , getEmailCreds = \email -> flip runConnectionPool p $ do
         x <- getBy $ UniqueEmail email
         case x of
             Nothing -> return Nothing
             Just (eid, e) -> do
-                mu <- get $ emailOwner e
+                mu <- maybe (return Nothing) get $ emailOwner e
                 let pass = maybe Nothing userPassword mu
                 return $ Just EmailCreds
                     { emailCredsId = fromIntegral eid
                     , emailCredsPass = pass
-                    , emailCredsStatus = emailVerified e
+                    , emailCredsStatus = isJust $ emailOwner e
                     , emailCredsVerkey = emailVerkey e
                     }
     , getEmail = \emailid -> flip runConnectionPool p $ do

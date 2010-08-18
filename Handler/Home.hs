@@ -34,7 +34,7 @@ getHomeR :: Handler OR RepHtml
 getHomeR = do
     (uid, u) <- reqUserId
     profile <- runDB $ loadProfile $ userProfile u
-    emails <- runDB $ selectList [EmailOwnerEq uid] [] 0 0
+    emails <- runDB $ selectList [EmailOwnerEq $ Just uid] [] 0 0
     shares <- runDB $ selectList [ShareDestEq uid] [] 0 0 >>= mapM (\(_, Share srcid _) -> do
         src <- get404 srcid
         return (srcid, src)

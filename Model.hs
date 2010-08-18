@@ -21,10 +21,9 @@ FacebookCred
     ident String Eq
     UniqueFacebook ident
 Email
-    owner UserId Eq
+    owner UserId null Eq update
     email String
     verkey String null update
-    verified Bool update
     UniqueEmail email
 
 Share
@@ -56,7 +55,7 @@ Misc
 Entry
     owner UserId Eq
     profile ProfileId
-    title String Asc
+    title String Asc update
 
 Note
     user UserId Eq
@@ -95,3 +94,9 @@ newUser dn = do
     now <- liftIO getCurrentTime
     eid <- insert $ Profile now
     insert $ User now dn eid Nothing
+
+claimShares :: MonadCatchIO m => UserId -> String -> SqlPersist m ()
+claimShares uid email = do
+    selectList [ShareOfferDestEq email] [] 0 0 >>= mapM_ (\(sid, s) -> do
+        _ <- insert $ Share (shareOfferSource s) uid
+        delete sid)

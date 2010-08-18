@@ -10,7 +10,7 @@
             $maybe user u
                 #userbar
                     Welcome $u$. $
-                    %a!href=@AuthR.LogoutR@ Logout
+                    %a!href=@ORLogoutR@ Logout
         #wrapper
             $maybe mmsg msg
                 %p.ui-state-highlight

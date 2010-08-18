@@ -17,13 +17,13 @@ postShareR = do
             runDB $ do
                 x <- getBy $ UniqueEmail email
                 case x of
-                    Just (_, Email dest _ _ _) -> do
+                    Just (_, Email (Just dest) _ _) -> do
                         _ <- insert $ Share uid dest
                         let msg = userDisplayName u ++ " is now sharing with you."
                         now <- liftIO getCurrentTime
                         _ <- insert $ Note dest (string msg) now
                         lift $ setMessage "Sharing initiated"
-                    Nothing -> do
+                    _ -> do
                         _ <- insertBy $ ShareOffer uid email
                         lift $ setMessage "Sharing offer initiated"
                         -- FIXME send an email invite

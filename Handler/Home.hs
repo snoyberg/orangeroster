@@ -36,7 +36,7 @@ getHomeR = do
         addScriptEither $ urlJqueryUiJs y
         addStylesheetEither $ urlJqueryUiCss y
         addStyle $(cassiusFile "home")
-        addJavaScript $(juliusFile "home")
+        addJavascript $(juliusFile "home")
 
 postHomeR :: Handler OR RepHtml
 postHomeR = do

@@ -45,29 +45,29 @@ withOR f = Settings.withConnectionPool $ \p -> do
         migrate (undefined :: Entry)
         migrate (undefined :: Note)
         migrate (undefined :: NoteLink)
-    let h = OR s (a p) p
+    let h = OR s a p
     toWaiApp h >>= f
   where
     s = fileLookupDir Settings.staticdir typeByExt
-    a p = Auth
+    a = Auth
             { authIsOpenIdEnabled = False
             , authRpxnowApiKey = Nothing
-            , authEmailSettings = Just $ emailSettings p
+            , authEmailSettings = Just emailSettings
             , authFacebook = Just (facebookKey, facebookSecret, ["email"])
             }
 
-emailSettings :: ConnectionPool -> AuthEmailSettings
-emailSettings p = AuthEmailSettings
-    { addUnverified = \email verkey -> flip runConnectionPool p $
+emailSettings :: AuthEmailSettings OR
+emailSettings = AuthEmailSettings
+    { addUnverified = \email verkey -> runDB $
         fmap fromIntegral $ insert $ Email Nothing email (Just verkey)
-    , sendVerifyEmail = \email verkey verurl -> do
+    , sendVerifyEmail = \email verkey verurl -> liftIO $
         print ("FIXME sendVerifyEmail", email, verkey, verurl)
-    , getVerifyKey = \emailid -> flip runConnectionPool p $ do
+    , getVerifyKey = \emailid -> runDB $ do
         x <- get $ fromIntegral emailid
         return $ maybe Nothing emailVerkey x
-    , setVerifyKey = \emailid verkey -> flip runConnectionPool p $
+    , setVerifyKey = \emailid verkey -> runDB $
         update (fromIntegral emailid) [EmailVerkey $ Just verkey]
-    , verifyAccount = \emailid' -> flip runConnectionPool p $ do
+    , verifyAccount = \emailid' -> runDB $ do
         let emailid = fromIntegral emailid'
         x <- get emailid
         case x of
@@ -77,7 +77,7 @@ emailSettings p = AuthEmailSettings
                 uid <- newUser email
                 update emailid [EmailOwner $ Just uid]
         update emailid [EmailVerkey Nothing]
-    , setPassword = \emailid' password -> flip runConnectionPool p $ do
+    , setPassword = \emailid' password -> runDB $ do
         let emailid = fromIntegral emailid'
         x <- get emailid
         case x of
@@ -85,7 +85,7 @@ emailSettings p = AuthEmailSettings
                 update uid [UserPassword $ Just password]
                 update emailid [EmailVerkey Nothing]
             _ -> return ()
-    , getEmailCreds = \email -> flip runConnectionPool p $ do
+    , getEmailCreds = \email -> runDB $ do
         x <- getBy $ UniqueEmail email
         case x of
             Nothing -> return Nothing
@@ -98,7 +98,7 @@ emailSettings p = AuthEmailSettings
                     , emailCredsStatus = isJust $ emailOwner e
                     , emailCredsVerkey = emailVerkey e
                     }
-    , getEmail = \emailid -> flip runConnectionPool p $ do
+    , getEmail = \emailid -> runDB $ do
         -- FIXME :: EmailId -> IO (Maybe Email)
         x <- get $ fromIntegral emailid
         return $ fmap emailEmail x

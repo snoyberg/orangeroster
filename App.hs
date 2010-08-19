@@ -6,6 +6,7 @@ module App
     , Static
     , reqUserId
     , clearUserId
+    , AuthOR
     ) where
 
 import Yesod
@@ -22,9 +23,10 @@ import StaticFiles
 
 data OR = OR
     { getStatic :: Static
-    , getAuth :: Auth
+    , getAuth :: AuthOR
     , connPool :: Settings.ConnectionPool
     }
+type AuthOR = Auth OR
 
 mkYesodData "OR" [$parseRoutes|
 / RootR GET
@@ -43,7 +45,7 @@ mkYesodData "OR" [$parseRoutes|
 
 /static StaticR Static getStatic
 /favicon.ico FaviconR GET
-/auth AuthR Auth getAuth
+/auth AuthR AuthOR getAuth
 
 /note/#NoteId/close NoteCloseR POST
 

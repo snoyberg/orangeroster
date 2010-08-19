@@ -52,6 +52,9 @@
                 $forall shares s
                     %tr
                         %td
+                            $maybe siEmail.s e
+                                %img!src=$gravatar.e$
+                        %td
                             $if siShareFrom.s
                                 %a.share-link!href=@ProfileR.siUid.s@
                                     $userDisplayName.siUser.s$

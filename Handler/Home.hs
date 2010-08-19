@@ -17,6 +17,9 @@ import Data.Function (on)
 import Data.Ord (comparing)
 import Control.Monad (forM)
 import Control.Arrow ((&&&))
+import Data.Digest.Pure.MD5 (md5)
+import qualified Data.ByteString.Lazy.UTF8 as L
+import Data.Char (toLower, isSpace)
 
 entryForm :: FormInput s m (PType, String, String)
 entryForm = pure (,,)
@@ -51,7 +54,15 @@ data ShareInfo = ShareInfo
     , siUser :: User
     , siShareTo :: Bool
     , siShareFrom :: Bool
+    , siEmail :: Maybe String
     }
+
+gravatar :: String -> String
+gravatar x =
+    "http://www.gravatar.com/avatar/" ++ hash ++ "?d=wavatar&s=50"
+  where
+    hash = show $ md5 $ L.fromString $ map toLower $ trim x
+    trim = reverse . dropWhile isSpace . reverse . dropWhile isSpace
 
 getHomeR :: Handler OR RepHtml
 getHomeR = do
@@ -69,11 +80,21 @@ getHomeR = do
     shares <- runDB $ forM shares' $ \(uid', st') -> do
         u' <- get404 uid'
         let st = mconcat st'
+        let sf = st `elem` [ShareFrom, ShareBoth]
+        email <-
+            if sf
+                then do
+                    res <- selectList [EmailOwnerEq $ Just uid'] [] 1 0
+                    case res of
+                        (_, Email _ email _):_ -> return $ Just email
+                        [] -> return Nothing
+                else return Nothing
         return ShareInfo
             { siUid = uid'
             , siUser = u'
             , siShareTo = st `elem` [ShareTo, ShareBoth]
-            , siShareFrom = st `elem` [ShareFrom, ShareBoth]
+            , siShareFrom = sf
+            , siEmail = email
             }
     entries <- runDB $ selectList [EntryOwnerEq uid] [EntryTitleAsc] 0 0
     notes <- runDB $ selectList [NoteUserEq uid] [NoteCreationDesc] 10 0 >>= mapM (\(nid, n) -> do

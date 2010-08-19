@@ -17,5 +17,7 @@ Executable simple-server
                             hamlet,
                             time,
                             transformers,
-                            MonadCatchIO-transformers
+                            MonadCatchIO-transformers,
+                            utf8-string,
+                            pureMD5
   ghc-options:              -O0 -Wall -Werror

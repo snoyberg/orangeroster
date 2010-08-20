@@ -2,11 +2,16 @@
 %html
     %head
         %title $pageTitle.pc$
-        ^pageHead.pc^
         %link!rel=stylesheet!href=@StaticR.styles_default_css@
+        %link!rel=stylesheet!href=@StaticR.jquery_ui_css@
+        %script!src=@StaticR.jquery_js@
+        %script!src=@StaticR.jquery_ui_js@
+        ^pageHead.pc^
     %body
         %header
-            #banner Orange Roster
+            #banner
+                %a!href=@RootR@
+                    %img!src=@StaticR.logo_png@!alt="Orange Roster"
             $maybe user u
                 #userbar
                     Welcome $u$. $
@@ -16,4 +21,6 @@
                 %p.ui-state-highlight
                     %span.ui-icon.ui-icon-info!style="float:left"
                     $msg$
-            ^pageBody.pc^
+        #wrapper
+            #wrapper2
+                ^pageBody.pc^

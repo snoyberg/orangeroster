@@ -22,6 +22,11 @@
                         $forall snd.n l
                             %a!href=$noteLinkDest.snd.l$ $noteLinkText.snd.l$
     #profile
+        $if not.null.emails
+            #gravatar
+                %img!src=$gravatar.emailEmail.snd.head.emails$
+                This is your gravatar. $
+                %a!href="http://www.gravatar.com/" Find out more.
         %div
             %span Your display name is $userDisplayName.u$.
             %form#change-display-name!method=post!action=@DisplayNameR@

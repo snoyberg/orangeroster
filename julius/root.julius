@@ -1,0 +1,19 @@
+$$(function(){
+    var html = [];
+    html.push(" <button class='smaller' id='register-link'>No account?</button> ");
+    html.push("<button class='smaller' id='forgot-link'>Forgot your password?</button>");
+    $$("#login-controls").html(html.join(''));
+    $$("input[type=submit], button").button();
+    $$("#register, #forgot").hide();
+    $$("#register-link").click(function(){
+        $$("#login").hide();
+        $$("#register").show();
+        return false;
+    });
+    $$("#forgot-link").click(function(){
+        $$("#login").hide();
+        $$("#forgot").show();
+        return false;
+    });
+    $$("#blurb").tabs();
+});

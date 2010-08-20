@@ -1,3 +1,5 @@
+#tabs
+    border: 1px dashed #ee9000
 table.profile td, table.profile th
     padding: 3px
     border: 1px solid #ccc

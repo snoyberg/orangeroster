@@ -4,8 +4,11 @@
 module Handler.Share where
 
 import Yesod
+import Yesod.Mail
+import Yesod.Helpers.Auth
 import App
 import Model
+import Settings
 import Data.Time (getCurrentTime)
 
 --startShare :: UserId -> UserId -> Handle
@@ -31,7 +34,28 @@ postShareR = do
                 _ -> runDB $ do
                     _ <- insertBy $ ShareOffer uid email
                     lift $ setMessage "Sharing offer initiated"
-                    -- FIXME send an email invite
+                    y <- lift getYesod
+                    verkey <- liftIO $ randomKey y
+                    emailid <- addUnverified' email verkey
+                    let url = AuthR $ EmailVerifyR emailid verkey
+                    render <- lift getUrlRenderParams
+                    let lbs = renderHamlet render $(hamletFile "invite")
+                    liftIO $ renderSendMail Mail
+                        { mailHeaders =
+                            [ ("To", email)
+                            , ("From", "noreply@orangeroster.com")
+                            , ("Subject", "Invitation to OrangeRoster")
+                            ]
+                        , mailPlain = render url []
+                        , mailParts =
+                            [ Part
+                                { partType = "text/html; charset=utf8"
+                                , partEncoding = None
+                                , partDisposition = Inline
+                                , partContent = lbs
+                                }
+                            ]
+                        }
         _ -> setMessage "Invalid email address submitted"
     redirect RedirectTemporary HomeR
 

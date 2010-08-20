@@ -7,19 +7,24 @@ module App
     , reqUserId
     , clearUserId
     , AuthOR
+    , addUnverified'
+    , emailSettings
     ) where
 
 import Yesod
+import Yesod.Mail
 import Yesod.Helpers.Auth
 import Yesod.Helpers.Static
 import Yesod.Form.Jquery
 import qualified Settings
 import System.Directory
 import qualified Data.ByteString.Lazy as L
-import Web.Routes.Site
+import Yesod.WebRoutes
 import Database.Persist.GenericSql
 import Model
 import StaticFiles
+import Data.Maybe (isJust)
+import Settings
 
 data OR = OR
     { getStatic :: Static
@@ -165,3 +170,71 @@ instance YesodJquery OR where
     urlJqueryJs _ = Left $ StaticR jquery_js
     urlJqueryUiJs _ = Left $ StaticR jquery_ui_js
     urlJqueryUiCss _ = Left $ StaticR jquery_ui_css
+
+addUnverified' :: String -> String -> SqlPersist (GHandler s OR) Integer
+addUnverified' email verkey =
+    fmap fromIntegral $ insert $ Email Nothing email (Just verkey)
+
+emailSettings :: AuthEmailSettings OR
+emailSettings = AuthEmailSettings
+    { addUnverified = \x -> runDB . addUnverified' x
+    , sendVerifyEmail = \email verkey verurl -> do
+        render <- getUrlRenderParams
+        tm <- getRouteToMaster
+        let lbs = renderHamlet render $(hamletFile "verify")
+        liftIO $ renderSendMail Mail
+            { mailHeaders =
+                [ ("To", email)
+                , ("From", "reply@orangeroster.com")
+                , ("Subject", "OrangeRoster: Verify your email address")
+                ]
+            , mailPlain = verurl
+            , mailParts =
+                [ Part
+                    { partType = "text/html; charset=utf-8"
+                    , partEncoding = None
+                    , partDisposition = Inline
+                    , partContent = lbs
+                    }
+                ]
+            }
+    , getVerifyKey = \emailid -> runDB $ do
+        x <- get $ fromIntegral emailid
+        return $ maybe Nothing emailVerkey x
+    , setVerifyKey = \emailid verkey -> runDB $
+        update (fromIntegral emailid) [EmailVerkey $ Just verkey]
+    , verifyAccount = \emailid' -> runDB $ do
+        let emailid = fromIntegral emailid'
+        x <- get emailid
+        case x of
+            Nothing -> return ()
+            Just (Email (Just _) _ _) -> return ()
+            Just (Email Nothing email _) -> do
+                uid <- newUser email
+                update emailid [EmailOwner $ Just uid]
+        update emailid [EmailVerkey Nothing]
+    , setPassword = \emailid' password -> runDB $ do
+        let emailid = fromIntegral emailid'
+        x <- get emailid
+        case x of
+            Just (Email (Just uid) _ _) -> do
+                update uid [UserPassword $ Just password]
+                update emailid [EmailVerkey Nothing]
+            _ -> return ()
+    , getEmailCreds = \email -> runDB $ do
+        x <- getBy $ UniqueEmail email
+        case x of
+            Nothing -> return Nothing
+            Just (eid, e) -> do
+                mu <- maybe (return Nothing) get $ emailOwner e
+                let pass = maybe Nothing userPassword mu
+                return $ Just EmailCreds
+                    { emailCredsId = fromIntegral eid
+                    , emailCredsPass = pass
+                    , emailCredsStatus = isJust $ emailOwner e
+                    , emailCredsVerkey = emailVerkey e
+                    }
+    , getEmail = \emailid -> runDB $ do
+        x <- get $ fromIntegral emailid
+        return $ fmap emailEmail x
+    }

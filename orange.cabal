@@ -10,7 +10,6 @@ Executable simple-server
                             wai-extra,
                             directory,
                             bytestring,
-                            web-routes,
                             persistent,
                             persistent-postgresql,
                             template-haskell,

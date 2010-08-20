@@ -20,7 +20,7 @@ input[type=email]
 #share-table-wrapper
     height: 400px
     overflow: auto
-    width: 300px
+    width: 350px
     float: left
     margin-right: 50px
 #share-pane

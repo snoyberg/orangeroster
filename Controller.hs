@@ -21,8 +21,6 @@ import Handler.Entry
 import Handler.Note
 import Handler.Auth
 
-import Data.Maybe (isJust)
-
 mkYesodDispatch "OR" resourcesOR
 
 getFaviconR :: Handler OR ()
@@ -55,51 +53,3 @@ withOR f = Settings.withConnectionPool $ \p -> do
             , authEmailSettings = Just emailSettings
             , authFacebook = Just (facebookKey, facebookSecret, ["email"])
             }
-
-emailSettings :: AuthEmailSettings OR
-emailSettings = AuthEmailSettings
-    { addUnverified = \email verkey -> runDB $
-        fmap fromIntegral $ insert $ Email Nothing email (Just verkey)
-    , sendVerifyEmail = \email verkey verurl -> liftIO $
-        print ("FIXME sendVerifyEmail", email, verkey, verurl)
-    , getVerifyKey = \emailid -> runDB $ do
-        x <- get $ fromIntegral emailid
-        return $ maybe Nothing emailVerkey x
-    , setVerifyKey = \emailid verkey -> runDB $
-        update (fromIntegral emailid) [EmailVerkey $ Just verkey]
-    , verifyAccount = \emailid' -> runDB $ do
-        let emailid = fromIntegral emailid'
-        x <- get emailid
-        case x of
-            Nothing -> return ()
-            Just (Email (Just _) _ _) -> return ()
-            Just (Email Nothing email _) -> do
-                uid <- newUser email
-                update emailid [EmailOwner $ Just uid]
-        update emailid [EmailVerkey Nothing]
-    , setPassword = \emailid' password -> runDB $ do
-        let emailid = fromIntegral emailid'
-        x <- get emailid
-        case x of
-            Just (Email (Just uid) _ _) -> do
-                update uid [UserPassword $ Just password]
-                update emailid [EmailVerkey Nothing]
-            _ -> return ()
-    , getEmailCreds = \email -> runDB $ do
-        x <- getBy $ UniqueEmail email
-        case x of
-            Nothing -> return Nothing
-            Just (eid, e) -> do
-                mu <- maybe (return Nothing) get $ emailOwner e
-                let pass = maybe Nothing userPassword mu
-                return $ Just EmailCreds
-                    { emailCredsId = fromIntegral eid
-                    , emailCredsPass = pass
-                    , emailCredsStatus = isJust $ emailOwner e
-                    , emailCredsVerkey = emailVerkey e
-                    }
-    , getEmail = \emailid -> runDB $ do
-        -- FIXME :: EmailId -> IO (Maybe Email)
-        x <- get $ fromIntegral emailid
-        return $ fmap emailEmail x
-    }

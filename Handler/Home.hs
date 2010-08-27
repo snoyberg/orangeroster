@@ -6,7 +6,7 @@ module Handler.Home where
 import Yesod
 import Yesod.Form.Core
 import Yesod.Form.Jquery
-import App
+import OR
 import Settings
 import Model
 import Control.Applicative
@@ -64,7 +64,7 @@ gravatar x =
     hash = show $ md5 $ L.fromString $ map toLower $ trim x
     trim = reverse . dropWhile isSpace . reverse . dropWhile isSpace
 
-getHomeR :: Handler OR RepHtml
+getHomeR :: Handler RepHtml
 getHomeR = do
     (uid, u) <- reqUserId
     profile <- runDB $ loadProfile $ userProfile u
@@ -101,7 +101,7 @@ getHomeR = do
         ls <- selectList [NoteLinkNoteEq nid] [NoteLinkPriorityAsc] 0 0
         return ((nid, n), ls))
     y <- getYesod
-    applyLayoutW $ do
+    defaultLayout $ do
         setTitle "Homepage"
         let showProfile' = showProfile profile $ Just HomeR
         addBody $(hamletFile "home")
@@ -114,13 +114,13 @@ getHomeR = do
 
 data PType = PTPhone | PTAddress | PTScreenName | PTMisc
 
-postHomeR :: Handler OR ()
+postHomeR :: Handler ()
 postHomeR = do
     (_, u) <- reqUserId
     insertProfile $ userProfile u
     redirect RedirectTemporary HomeR
 
-insertProfile :: ProfileId -> Handler OR ()
+insertProfile :: ProfileId -> Handler ()
 insertProfile pid = do
     (x, _, _) <- runFormPost entryForm
     case x of
@@ -133,7 +133,7 @@ insertProfile pid = do
             setMessage "Data added"
         _ -> setMessage "Invalid data submitted"
 
-postDisplayNameR :: Handler OR ()
+postDisplayNameR :: Handler ()
 postDisplayNameR = do
     (uid, _) <- reqUserId
     (res, _, _) <- runFormPost $ stringInput "display-name"

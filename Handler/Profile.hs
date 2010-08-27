@@ -4,14 +4,14 @@
 module Handler.Profile where
 
 import Yesod
-import App
+import OR
 import Model
 import Settings
 import Control.Monad (unless)
 import Data.Maybe (isJust)
 import Handler.Home (showProfile)
 
-getProfileR :: UserId -> Handler OR RepHtml
+getProfileR :: UserId -> Handler RepHtml
 getProfileR srcid = do
     (destid, _) <- reqUserId
     isShared <- fmap isJust $ runDB $ getBy $ UniqueShare srcid destid

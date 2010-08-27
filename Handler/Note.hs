@@ -4,10 +4,10 @@
 module Handler.Note where
 
 import Yesod
-import App
+import OR
 import Model
 
-postNoteCloseR :: NoteId -> Handler OR ()
+postNoteCloseR :: NoteId -> Handler ()
 postNoteCloseR nid = do
     runDB $ do
         deleteWhere [NoteLinkNoteEq nid]

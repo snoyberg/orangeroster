@@ -57,5 +57,5 @@
             %input!type=submit!value="Reset Password"
     .or &mdash; OR &mdash;
     #third-party
-        %a!href=@AuthR.StartFacebookR@
+        %a!href=$fb$
             %img!src="http://developers.facebook.com/images/devsite/login-button.png"!alt="Login with Facebook"

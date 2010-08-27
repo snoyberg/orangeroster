@@ -6,13 +6,13 @@ module Handler.Share where
 import Yesod
 import Yesod.Mail
 import Yesod.Helpers.Auth
-import App
+import OR
 import Model
 import Settings
 import Data.Time (getCurrentTime)
 
 --startShare :: UserId -> UserId -> Handle
-startShare :: UserId -> User -> UserId -> Handler OR ()
+startShare :: UserId -> User -> UserId -> Handler ()
 startShare uid u dest = do
     runDB $ do
         _ <- insert $ Share uid dest
@@ -22,7 +22,7 @@ startShare uid u dest = do
         return ()
     setMessage "Sharing initiated"
 
-postShareR :: Handler OR ()
+postShareR :: Handler ()
 postShareR = do
     (uid, u) <- reqUserId
     (res, _, _) <- runFormPost $ emailInput "email"
@@ -37,7 +37,7 @@ postShareR = do
                     y <- lift getYesod
                     verkey <- liftIO $ randomKey y
                     emailid <- addUnverified' email verkey
-                    let url = AuthR $ EmailVerifyR emailid verkey
+                    let url = AuthR $ EmailVerifyR (fromPersistKey emailid) verkey
                     render <- lift getUrlRenderParams
                     let lbs = renderHamlet render $(hamletFile "invite")
                     liftIO $ renderSendMail Mail
@@ -59,13 +59,13 @@ postShareR = do
         _ -> setMessage "Invalid email address submitted"
     redirect RedirectTemporary HomeR
 
-postShareUserR :: UserId -> Handler OR ()
+postShareUserR :: UserId -> Handler ()
 postShareUserR dest = do
     (uid, u) <- reqUserId
     startShare uid u dest
     redirect RedirectTemporary HomeR
 
-postStopShareUserR :: UserId -> Handler OR ()
+postStopShareUserR :: UserId -> Handler ()
 postStopShareUserR dest = do
     (uid, _) <- reqUserId
     runDB $ deleteBy $ UniqueShare uid dest

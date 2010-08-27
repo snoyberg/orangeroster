@@ -5,7 +5,7 @@ module Controller
     ( withOR
     ) where
 
-import App
+import OR
 import Model
 import Settings
 import Yesod
@@ -19,11 +19,10 @@ import Handler.Share
 import Handler.Profile
 import Handler.Entry
 import Handler.Note
-import Handler.Auth
 
 mkYesodDispatch "OR" resourcesOR
 
-getFaviconR :: Handler OR ()
+getFaviconR :: Handler ()
 getFaviconR = sendFile "image/x-icon" "favicon.ico"
 
 withOR :: (Application -> IO a) -> IO a
@@ -43,13 +42,7 @@ withOR f = Settings.withConnectionPool $ \p -> do
         migrate (undefined :: Entry)
         migrate (undefined :: Note)
         migrate (undefined :: NoteLink)
-    let h = OR s a p
+    let h = OR s p
     toWaiApp h >>= f
   where
     s = fileLookupDir Settings.staticdir typeByExt
-    a = Auth
-            { authIsOpenIdEnabled = False
-            , authRpxnowApiKey = Nothing
-            , authEmailSettings = Just emailSettings
-            , authFacebook = Just (facebookKey, facebookSecret, ["email"])
-            }

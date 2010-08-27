@@ -1,14 +1,13 @@
 {-# LANGUAGE QuasiQuotes, TemplateHaskell, TypeFamilies #-}
-module App
+module OR
     ( OR (..)
     , ORRoute (..)
     , resourcesOR
     , Static
     , reqUserId
     , clearUserId
-    , AuthOR
     , addUnverified'
-    , emailSettings
+    , Handler
     ) where
 
 import Yesod
@@ -25,13 +24,14 @@ import Model
 import StaticFiles
 import Data.Maybe (isJust)
 import Settings
+import Control.Monad (join)
 
 data OR = OR
     { getStatic :: Static
-    , getAuth :: AuthOR
     , connPool :: Settings.ConnectionPool
     }
-type AuthOR = Auth OR
+
+type Handler = GHandler OR OR
 
 mkYesodData "OR" [$parseRoutes|
 / RootR GET
@@ -50,20 +50,19 @@ mkYesodData "OR" [$parseRoutes|
 
 /static StaticR Static getStatic
 /favicon.ico FaviconR GET
-/auth AuthR AuthOR getAuth
+/auth AuthR Auth getAuth
 
 /note/#NoteId/close NoteCloseR POST
-
-/logout ORLogoutR GET
 |]
 
 instance Yesod OR where
     approot _ = Settings.approot
-    defaultLayout pc = do
+    defaultLayout w = do
         u <- maybeUserId
         let user = fmap (userDisplayName . snd) u
         mmsg <- getMessage
-        hamletToContent $(Settings.hamletFile "default-layout")
+        pc <- widgetToPageContent w
+        hamletToRepHtml $(Settings.hamletFile "default-layout")
     urlRenderOverride a (StaticR s) =
         Just $ uncurry (joinPath a Settings.staticroot) $ format s
       where
@@ -71,6 +70,7 @@ instance Yesod OR where
         ss :: Site StaticRoute (String -> Maybe (GHandler Static OR ChooseRep))
         ss = getSubSite
     urlRenderOverride _ _ = Nothing
+    authRoute _ = Just RootR
     addStaticContent ext' _ content = do
         let fn = base64md5 content ++ '.' : ext'
         let statictmp = Settings.staticdir ++ "/tmp/"
@@ -83,9 +83,11 @@ instance YesodPersist OR where
     runDB db = fmap connPool getYesod >>= Settings.runConnectionPool db
 
 instance YesodAuth OR where
+    type AuthEntity OR = User
+    type AuthEmailEntity OR = Email
+
     defaultDest _ = HomeR
-    defaultLoginRoute _ = RootR
-    onLogin c _ =
+    getAuthId c _ =
         case (credsAuthType c, credsDisplayName c, credsEmail c) of
             (AuthFacebook, Just dn, Just email) -> do
                 let ci = credsIdent c
@@ -109,6 +111,7 @@ instance YesodAuth OR where
                                 return uid
                 setUserId uid
                 runDB $ claimShares uid email
+                return $ Just uid
             (AuthEmail, _, Just email) -> do
                 uid <- runDB $ do
                     me <- getBy $ UniqueEmail email
@@ -126,7 +129,15 @@ instance YesodAuth OR where
                     claimShares uid email
                     return uid
                 setUserId uid
-            _ -> return ()
+                return $ Just uid
+            _ -> return Nothing
+
+    emailSettings _ = Just emailSettings'
+    facebookSettings _ =
+        Just $ FacebookSettings
+            facebookKey
+            facebookSecret
+            ["email"]
 
 userKey :: String
 userKey = "USER"
@@ -171,12 +182,11 @@ instance YesodJquery OR where
     urlJqueryUiJs _ = Left $ StaticR jquery_ui_js
     urlJqueryUiCss _ = Left $ StaticR jquery_ui_css
 
-addUnverified' :: String -> String -> SqlPersist (GHandler s OR) Integer
-addUnverified' email verkey =
-    fmap fromIntegral $ insert $ Email Nothing email (Just verkey)
+addUnverified' :: String -> String -> SqlPersist (GHandler s OR) EmailId
+addUnverified' email verkey = insert $ Email Nothing email (Just verkey)
 
-emailSettings :: AuthEmailSettings OR
-emailSettings = AuthEmailSettings
+emailSettings' :: EmailSettings OR
+emailSettings' = EmailSettings
     { addUnverified = \x -> runDB . addUnverified' x
     , sendVerifyEmail = \email verkey verurl -> do
         render <- getUrlRenderParams
@@ -206,13 +216,17 @@ emailSettings = AuthEmailSettings
     , verifyAccount = \emailid' -> runDB $ do
         let emailid = fromIntegral emailid'
         x <- get emailid
-        case x of
-            Nothing -> return ()
-            Just (Email (Just _) _ _) -> return ()
-            Just (Email Nothing email _) -> do
-                uid <- newUser email
-                update emailid [EmailOwner $ Just uid]
+        uid <-
+            case x of
+                Nothing -> return Nothing
+                Just (Email (Just uid) _ _) -> return $ Just uid
+                Just (Email Nothing email _) -> do
+                    uid <- newUser email
+                    update emailid [EmailOwner $ Just uid]
+                    return $ Just uid
         update emailid [EmailVerkey Nothing]
+        return uid
+    , getPassword = runDB . fmap (join . fmap userPassword) . get
     , setPassword = \emailid' password -> runDB $ do
         let emailid = fromIntegral emailid'
         x <- get emailid
@@ -225,12 +239,10 @@ emailSettings = AuthEmailSettings
         x <- getBy $ UniqueEmail email
         case x of
             Nothing -> return Nothing
-            Just (eid, e) -> do
-                mu <- maybe (return Nothing) get $ emailOwner e
-                let pass = maybe Nothing userPassword mu
+            Just (eid, e) ->
                 return $ Just EmailCreds
                     { emailCredsId = fromIntegral eid
-                    , emailCredsPass = pass
+                    , emailCredsAuthId = emailOwner e
                     , emailCredsStatus = isJust $ emailOwner e
                     , emailCredsVerkey = emailVerkey e
                     }

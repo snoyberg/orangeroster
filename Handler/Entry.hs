@@ -4,14 +4,14 @@
 module Handler.Entry where
 
 import Yesod
-import App
+import OR
 import Model
 import Data.Time
 import Handler.Home (insertProfile, showProfile)
 import Control.Monad (unless)
 import Settings
 
-postEntriesR :: Handler OR ()
+postEntriesR :: Handler ()
 postEntriesR = do
     (uid, _) <- reqUserId
     mname <- runFormPost' $ maybeStringInput "name"
@@ -27,7 +27,7 @@ postEntriesR = do
     setMessage "Your entry has been created."
     redirect RedirectTemporary HomeR
 
-getEntryR :: EntryId -> Handler OR RepHtml
+getEntryR :: EntryId -> Handler RepHtml
 getEntryR eid = do
     (uid, _) <- reqUserId
     Entry uid' pid name <- runDB $ get404 eid
@@ -36,7 +36,7 @@ getEntryR eid = do
     let showProfile' = showProfile profile $ Just $ EntryR eid
     hamletToRepHtml $(hamletFile "entry")
 
-postEntryR :: EntryId -> Handler OR ()
+postEntryR :: EntryId -> Handler ()
 postEntryR eid = do
     (uid, _) <- reqUserId
     Entry uid' pid _ <- runDB $ get404 eid
@@ -44,7 +44,7 @@ postEntryR eid = do
     insertProfile pid
     redirect RedirectTemporary HomeR
 
-postEntryNameR :: EntryId -> Handler OR ()
+postEntryNameR :: EntryId -> Handler ()
 postEntryNameR eid = do
     (uid, _) <- reqUserId
     Entry uid' _ _ <- runDB $ get404 eid
@@ -57,7 +57,7 @@ postEntryNameR eid = do
         _ -> setMessage "Invalid name submitted"
     redirect RedirectTemporary HomeR
 
-postDeleteEntryR :: EntryId -> Handler OR ()
+postDeleteEntryR :: EntryId -> Handler ()
 postDeleteEntryR eid = do
     (uid, _) <- reqUserId
     Entry uid' _ _ <- runDB $ get404 eid

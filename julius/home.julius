@@ -1,23 +1,23 @@
 function hiding(x) {
     x.children("form.hidden").hide().before("<button class='hidden-form-shower smaller-font'>Add</button>");
     x.children("button.hidden-form-shower").button().click(function(){
-        $$(this).hide().next().show();
+        $(this).hide().next().show();
         return false;
     });
 }
 
-$$(function() {
-    $$("#tabs").tabs({
+$(function() {
+    $("#tabs").tabs({
         cookie: {
             expires: 1
         }
     });
-    $$("#change-display-name").hide().before("<button id='change-name-button'>Change</button>");
-    $$("#change-name-button").click(function(){
-        $$(this).hide().prev().hide().end().next().show();
+    $("#change-display-name").hide().before("<button id='change-name-button'>Change</button>");
+    $("#change-name-button").click(function(){
+        $(this).hide().prev().hide().end().next().show();
         return false;
     });
-    $$("#book > div.accordion").accordion({
+    $("#book > div.accordion").accordion({
         active: false,
         autoHeight: false,
         collapsible: true,
@@ -29,14 +29,14 @@ $$(function() {
             });
         }
     });
-    $$("input[type=submit], button").button().addClass("smaller-font");
-    hiding($$("#profile"));
-    $$("form.delete-entry button").click(function(){
-        $$(this).closest("form").submit();
+    $("input[type=submit], button").button().addClass("smaller-font");
+    hiding($("#profile"));
+    $("form.delete-entry button").click(function(){
+        $(this).closest("form").submit();
         return false;
     });
-    $$("a.share-link").click(function(){
-        $$("#share-pane").load($$(this).attr("href"));
+    $("a.share-link").click(function(){
+        $("#share-pane").load($(this).attr("href"));
         return false;
     });
 });

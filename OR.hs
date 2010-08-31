@@ -4,8 +4,6 @@ module OR
     , ORRoute (..)
     , resourcesOR
     , Static
-    , reqUserId
-    , clearUserId
     , addUnverified'
     , Handler
     ) where
@@ -58,7 +56,7 @@ mkYesodData "OR" [$parseRoutes|
 instance Yesod OR where
     approot _ = Settings.approot
     defaultLayout w = do
-        u <- maybeUserId
+        u <- maybeAuth
         let user = fmap (userDisplayName . snd) u
         mmsg <- getMessage
         pc <- widgetToPageContent w
@@ -109,7 +107,6 @@ instance YesodAuth OR where
                                             return uid
                                 _ <- insert $ FacebookCred uid ci
                                 return uid
-                setUserId uid
                 runDB $ claimShares uid email
                 return $ Just uid
             (AuthEmail, _, Just email) -> do
@@ -128,7 +125,6 @@ instance YesodAuth OR where
                             return uid
                     claimShares uid email
                     return uid
-                setUserId uid
                 return $ Just uid
             _ -> return Nothing
 
@@ -139,9 +135,6 @@ instance YesodAuth OR where
             facebookSecret
             ["email"]
 
-userKey :: String
-userKey = "USER"
-
 intstring :: Integral i => i -> String
 intstring i = show (fromIntegral i :: Int)
 
@@ -149,33 +142,6 @@ stringint :: Integral i => String -> Maybe i
 stringint s = case reads s of
                 (i, _):_ -> Just $ fromIntegral (i :: Int)
                 [] -> Nothing
-
-setUserId :: UserId -> GHandler s m ()
-setUserId = setSession userKey . intstring
-
-clearUserId :: GHandler s m ()
-clearUserId = deleteSession userKey
-
-maybeUserId :: GHandler s OR (Maybe (UserId, User))
-maybeUserId = do
-    muid <- maybe Nothing stringint `fmap` lookupSession userKey
-    case muid of
-        Nothing -> return Nothing
-        Just uid -> do
-            mu <- runDB $ get uid
-            case mu of
-                Nothing -> return Nothing
-                Just u -> return $ Just (uid, u)
-
-reqUserId :: GHandler s OR (UserId, User)
-reqUserId = do
-    uid <- maybeUserId
-    case uid of
-        Just x -> return x
-        Nothing -> do
-            setMessage $ string "Please log in."
-            setUltDest'
-            redirect RedirectTemporary RootR
 
 instance YesodJquery OR where
     urlJqueryJs _ = Left $ StaticR jquery_js

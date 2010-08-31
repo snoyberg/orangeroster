@@ -4,6 +4,7 @@
 module Handler.Profile where
 
 import Yesod
+import Yesod.Helpers.Auth
 import OR
 import Model
 import Settings
@@ -13,7 +14,7 @@ import Handler.Home (showProfile)
 
 getProfileR :: UserId -> Handler RepHtml
 getProfileR srcid = do
-    (destid, _) <- reqUserId
+    destid <- requireAuthId
     isShared <- fmap isJust $ runDB $ getBy $ UniqueShare srcid destid
     unless isShared $ permissionDenied "The request user is not sharing with you."
     src <- runDB $ get404 srcid

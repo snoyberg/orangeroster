@@ -4,6 +4,7 @@
 module Handler.Home where
 
 import Yesod
+import Yesod.Helpers.Auth
 import Yesod.Form.Core
 import Yesod.Form.Jquery
 import OR
@@ -66,7 +67,7 @@ gravatar x =
 
 getHomeR :: Handler RepHtml
 getHomeR = do
-    (uid, u) <- reqUserId
+    (uid, u) <- requireAuth
     profile <- runDB $ loadProfile $ userProfile u
     emails <- runDB $ selectList [EmailOwnerEq $ Just uid] [] 0 0
     shares1 <- runDB $ selectList [ShareDestEq uid] [] 0 0 >>= mapM (\(_, Share srcid _) ->
@@ -116,7 +117,7 @@ data PType = PTPhone | PTAddress | PTScreenName | PTMisc
 
 postHomeR :: Handler ()
 postHomeR = do
-    (_, u) <- reqUserId
+    (_, u) <- requireAuth
     insertProfile $ userProfile u
     redirect RedirectTemporary HomeR
 
@@ -135,7 +136,7 @@ insertProfile pid = do
 
 postDisplayNameR :: Handler ()
 postDisplayNameR = do
-    (uid, _) <- reqUserId
+    (uid, _) <- requireAuth
     (res, _, _) <- runFormPost $ stringInput "display-name"
     case res of
         FormSuccess dn -> do

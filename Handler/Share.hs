@@ -24,7 +24,7 @@ startShare uid u dest = do
 
 postShareR :: Handler ()
 postShareR = do
-    (uid, u) <- reqUserId
+    (uid, u) <- requireAuth
     (res, _, _) <- runFormPost $ emailInput "email"
     case res of
         FormSuccess email -> do
@@ -61,13 +61,13 @@ postShareR = do
 
 postShareUserR :: UserId -> Handler ()
 postShareUserR dest = do
-    (uid, u) <- reqUserId
+    (uid, u) <- requireAuth
     startShare uid u dest
     redirect RedirectTemporary HomeR
 
 postStopShareUserR :: UserId -> Handler ()
 postStopShareUserR dest = do
-    (uid, _) <- reqUserId
+    (uid, _) <- requireAuth
     runDB $ deleteBy $ UniqueShare uid dest
     setMessage "No longer sharing"
     redirect RedirectTemporary HomeR

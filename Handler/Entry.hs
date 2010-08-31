@@ -4,6 +4,7 @@
 module Handler.Entry where
 
 import Yesod
+import Yesod.Helpers.Auth
 import OR
 import Model
 import Data.Time
@@ -13,7 +14,7 @@ import Settings
 
 postEntriesR :: Handler ()
 postEntriesR = do
-    (uid, _) <- reqUserId
+    uid <- requireAuthId
     mname <- runFormPost' $ maybeStringInput "name"
     name <- case mname of
                 Nothing -> do
@@ -29,7 +30,7 @@ postEntriesR = do
 
 getEntryR :: EntryId -> Handler RepHtml
 getEntryR eid = do
-    (uid, _) <- reqUserId
+    uid <- requireAuthId
     Entry uid' pid name <- runDB $ get404 eid
     unless (uid == uid') $ permissionDenied "You do not own that entry."
     profile <- runDB $ loadProfile pid
@@ -38,7 +39,7 @@ getEntryR eid = do
 
 postEntryR :: EntryId -> Handler ()
 postEntryR eid = do
-    (uid, _) <- reqUserId
+    uid <- requireAuthId
     Entry uid' pid _ <- runDB $ get404 eid
     unless (uid == uid') $ permissionDenied "You do not own that entry."
     insertProfile pid
@@ -46,7 +47,7 @@ postEntryR eid = do
 
 postEntryNameR :: EntryId -> Handler ()
 postEntryNameR eid = do
-    (uid, _) <- reqUserId
+    uid <- requireAuthId
     Entry uid' _ _ <- runDB $ get404 eid
     unless (uid == uid') $ permissionDenied "You do not own that entry."
     (res, _, _) <- runFormPost $ stringInput "name"
@@ -59,7 +60,7 @@ postEntryNameR eid = do
 
 postDeleteEntryR :: EntryId -> Handler ()
 postDeleteEntryR eid = do
-    (uid, _) <- reqUserId
+    uid <- requireAuthId
     Entry uid' _ _ <- runDB $ get404 eid
     unless (uid == uid') $ permissionDenied "You do not own that entry."
     runDB $ delete eid

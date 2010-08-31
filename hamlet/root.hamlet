@@ -21,7 +21,6 @@
         %img.icon!src=@StaticR.address_book_png@
         It's convenient to be able to keep all of your contact information in one place. If your friends put up a profile and share it with you, you can always get their most recent contact information. You can also put up information about them for yourself. Once again, anything goes: favorite color, anniversary or their name in Klingon.
 #auth
-    %h2!style=color:red Warning: This site is pre-alpha. Your data will be lost.
     %form#login!method=post!action=@AuthR.EmailLoginR@
         %h3 Login Directly
         %table

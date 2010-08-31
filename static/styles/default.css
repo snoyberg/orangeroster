@@ -1,6 +1,6 @@
 body {
     font-family: sans-serif;
-    background: #BDDDEA;
+    background: #BDDDEA url(../alpha.png) no-repeat right top;
     font-size: 80%;
 }
 
@@ -20,6 +20,7 @@ img {
 
 #userbar {
     float: right;
+    margin-right: 100px;
 }
 
 #wrapper {

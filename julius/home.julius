@@ -29,7 +29,7 @@ $(function() {
             });
         }
     });
-    $("input[type=submit], button").button().addClass("smaller-font");
+    $("input[type=submit], button").not(".plain").button().addClass("smaller-font");
     hiding($("#profile"));
     $("form.delete-entry button").click(function(){
         $(this).closest("form").submit();

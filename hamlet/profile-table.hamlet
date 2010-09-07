@@ -1,10 +1,12 @@
 %table.profile
     $forall rows p
         %tr
-            %th $fst.p$
-            %td $snd.p$
+            %th $ptName.p$
+            %td $ptValue.p$
             $maybe dest _
                 %td
                     %span.ui-icon.ui-icon-wrench
                 %td
-                    %span.ui-icon.ui-icon-trash
+                    %form!method=post!action=@ptDelete.p@
+                        %button.plain
+                            %span.ui-icon.ui-icon-trash

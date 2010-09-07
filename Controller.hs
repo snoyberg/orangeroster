@@ -19,6 +19,7 @@ import Handler.Share
 import Handler.Profile
 import Handler.Entry
 import Handler.Note
+import Handler.Delete
 
 mkYesodDispatch "OR" resourcesOR
 

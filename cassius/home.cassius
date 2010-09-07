@@ -32,3 +32,6 @@ input[type=email]
     clear: both
 #sharing > form
     margin-bottom: 20px
+button.plain
+    background: inherit
+    border: 0

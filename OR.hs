@@ -6,6 +6,9 @@ module OR
     , Static
     , addUnverified'
     , Handler
+    , loadProfile
+    , ProfileData (..)
+    , PTData (..)
     ) where
 
 import Yesod
@@ -23,6 +26,9 @@ import StaticFiles
 import Data.Maybe (isJust)
 import Settings
 import Control.Monad (join)
+import Control.Arrow ((&&&))
+import Control.Monad (liftM)
+import Text.Hamlet (toHtml)
 
 data OR = OR
     { getStatic :: Static
@@ -51,6 +57,11 @@ mkYesodData "OR" [$parseRoutes|
 /auth AuthR Auth getAuth
 
 /note/#NoteId/close NoteCloseR POST
+
+/data/phone/#PhoneId/delete DeletePhoneR POST
+/data/address/#AddressId/delete DeleteAddressR POST
+/data/screen-name/#ScreenNameId/delete DeleteScreenNameR POST
+/data/misc/#MiscId/delete DeleteMiscR POST
 |]
 
 instance Yesod OR where
@@ -216,3 +227,33 @@ emailSettings' = EmailSettings
         x <- get $ fromIntegral emailid
         return $ fmap emailEmail x
     }
+
+data PTData = PTData
+    { ptName :: String
+    , ptValue :: Html
+    , ptDelete :: ORRoute
+    }
+
+data ProfileData = ProfileData
+    { pdPhone :: [PTData]
+    , pdAddress :: [PTData]
+    , pdScreenName :: [PTData]
+    , pdMisc :: [PTData]
+    }
+
+loadProfile :: MonadCatchIO m => ProfileId -> SqlPersist m ProfileData
+loadProfile eid = do
+    phones <- selectList [PhoneProfileEq eid] [PhoneNameAsc, PhoneValueAsc] 0 0
+    addresses <- selectList [AddressProfileEq eid] [AddressNameAsc, AddressValueAsc] 0 0
+    screenNames <- selectList [ScreenNameProfileEq eid] [ScreenNameNameAsc, ScreenNameValueAsc] 0 0
+    miscs <- selectList [MiscProfileEq eid] [MiscNameAsc, MiscValueAsc] 0 0
+    return $ ProfileData
+        (map goP phones)
+        (map goA addresses)
+        (map goS screenNames)
+        (map goM miscs)
+  where
+    goP (k, Phone _ n v) = PTData n (toHtml v) (DeletePhoneR k)
+    goA (k, Address _ n v) = PTData n (toHtml v) (DeleteAddressR k)
+    goS (k, ScreenName _ n v) = PTData n (toHtml v) (DeleteScreenNameR k)
+    goM (k, Misc _ n v) = PTData n (toHtml v) (DeleteMiscR k)

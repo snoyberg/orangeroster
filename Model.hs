@@ -16,6 +16,7 @@ User
     displayName String update
     profile ProfileId
     password String null update
+    UniqueUserProfile profile
 FacebookCred
     user UserId
     ident String Eq
@@ -56,6 +57,7 @@ Entry
     owner UserId Eq
     profile ProfileId
     title String Asc update
+    UniqueEntryProfile profile
 
 Note
     user UserId Eq
@@ -69,25 +71,6 @@ NoteLink
     priority Int Asc
     deriving
 |]
-
-data ProfileData = ProfileData
-    { pdPhone :: [(String, String)]
-    , pdAddress :: [(String, Textarea)]
-    , pdScreenName :: [(String, String)]
-    , pdMisc :: [(String, Textarea)]
-    }
-
-loadProfile :: MonadCatchIO m => ProfileId -> SqlPersist m ProfileData
-loadProfile eid = do
-    phones <- map (phoneName . snd &&& phoneValue . snd)
-                `liftM` selectList [PhoneProfileEq eid] [PhoneNameAsc, PhoneValueAsc] 0 0
-    addresses <- map (addressName . snd &&& addressValue . snd)
-                `liftM` selectList [AddressProfileEq eid] [AddressNameAsc, AddressValueAsc] 0 0
-    screenNames <- map (screenNameName . snd &&& screenNameValue . snd)
-                `liftM` selectList [ScreenNameProfileEq eid] [ScreenNameNameAsc, ScreenNameValueAsc] 0 0
-    miscs <- map (miscName . snd &&& miscValue . snd)
-                `liftM` selectList [MiscProfileEq eid] [MiscNameAsc, MiscValueAsc] 0 0
-    return $ ProfileData phones addresses screenNames miscs
 
 newUser :: MonadCatchIO m => String -> SqlPersist m UserId
 newUser dn = do

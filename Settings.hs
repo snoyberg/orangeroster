@@ -18,8 +18,8 @@ import qualified Text.Hamlet as H
 import qualified Text.Cassius as H
 import qualified Text.Julius as H
 import Language.Haskell.TH.Syntax
-import Database.Persist.Postgresql
-import Yesod (MonadCatchIO)
+import Database.Persist.Sqlite
+import Control.Monad.Invert
 
 hamletFile :: FilePath -> Q Exp
 hamletFile x = H.hamletFileDebug $ "hamlet/" ++ x ++ ".hamlet"
@@ -33,10 +33,10 @@ juliusFile x = H.juliusFileDebug $ "julius/" ++ x ++ ".julius"
 connStr :: String
 connStr = "user=orange password=orange host=localhost port=5432 dbname=orange"
 
-withConnectionPool :: MonadCatchIO m => (ConnectionPool -> m a) -> m a
-withConnectionPool = withPostgresqlPool connStr 10
+withConnectionPool :: MonadInvertIO m => (ConnectionPool -> m a) -> m a
+withConnectionPool = withSqlitePool connStr 10
 
-runConnectionPool :: MonadCatchIO m => SqlPersist m a -> ConnectionPool -> m a
+runConnectionPool :: MonadInvertIO m => SqlPersist m a -> ConnectionPool -> m a
 runConnectionPool = runSqlPool
 
 approot :: String

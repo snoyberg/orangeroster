@@ -21,7 +21,7 @@
         %img.icon!src=@StaticR.address_book_png@
         It's convenient to be able to keep all of your contact information in one place. If your friends put up a profile and share it with you, you can always get their most recent contact information. You can also put up information about them for yourself. Once again, anything goes: favorite color, anniversary or their name in Klingon.
 #auth
-    %form#login!method=post!action=@AuthR.EmailLoginR@
+    %form#login!method=post!action=@emailLogin@
         %h3 Login Directly
         %table
             %tr
@@ -41,7 +41,7 @@
         %p
             To get started, just enter your email address below. Don't worry: your privacy is very important to us.
             %b We will never share your information without your permission.
-        %form!method=post!action=@AuthR.EmailRegisterR@
+        %form!method=post!action=@emailRegister@
             Email address: $
             %input!type=email!name=email
             \ $
@@ -49,12 +49,12 @@
     #forgot
         %h3 Password Reset
         %p We need to verify that you are who you say you are. Please enter your email address below, and we will send you a verification link.
-        %form!method=post!action=@AuthR.EmailRegisterR@
+        %form!method=post!action=@AuthR.CheckR@
             Email address: $
             %input!type=email!name=email
             \ $
             %input!type=submit!value="Reset Password"
     .or &mdash; OR &mdash;
     #third-party
-        %a!href=$fb$
+        %a!href=@AuthR facebookUrl@
             %img!src="http://developers.facebook.com/images/devsite/login-button.png"!alt="Login with Facebook"

@@ -6,17 +6,22 @@ Cabal-Version:              >= 1.2
 Executable simple-server
   Main-is:                  simple-server.hs
   Build-depends:            base > 4 && < 5,
-                            yesod >= 0.5 && < 0.6,
+                            yesod >= 0.6 && < 0.7,
                             wai-extra,
                             directory,
                             bytestring,
-                            persistent,
-                            persistent-postgresql,
+                            persistent >= 0.3 && < 0.4,
+                            persistent-sqlite >= 0.3 && < 0.4,
                             template-haskell,
                             hamlet,
                             time,
                             transformers,
                             MonadCatchIO-transformers,
                             utf8-string,
-                            pureMD5
+                            pureMD5,
+                            mime-mail,
+                            neither,
+                            safe,
+                            web-routes,
+                            yesod-auth
   ghc-options:              -O0 -Wall -Werror

@@ -7,7 +7,6 @@ import Yesod
 import Yesod.Helpers.Auth
 import OR
 import Model
-import Settings
 
 deleteHelper :: PersistEntity x
              => String -> (x -> ProfileId) -> (Key x) -> Handler ()
@@ -34,7 +33,14 @@ deleteHelper s f did = do
     setMessage $ string $ s ++ " deleted"
     redirect RedirectTemporary HomeR
 
+postDeletePhoneR :: PhoneId -> Handler ()
 postDeletePhoneR = deleteHelper "Phone number" phoneProfile
+
+postDeleteAddressR :: AddressId -> Handler ()
 postDeleteAddressR = deleteHelper "Address" addressProfile
+
+postDeleteScreenNameR :: ScreenNameId -> Handler ()
 postDeleteScreenNameR = deleteHelper "Screen name" screenNameProfile
+
+postDeleteMiscR :: MiscId -> Handler ()
 postDeleteMiscR = deleteHelper "Misc" miscProfile

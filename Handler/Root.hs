@@ -4,15 +4,17 @@ module Handler.Root where
 
 import Yesod
 import Yesod.Helpers.Auth
+import Yesod.Helpers.Auth.Facebook
 import OR
 import Settings
 import StaticFiles
 
 getRootR :: Handler RepHtml
 getRootR = do
-    Just fb <- getFacebookUrl AuthR
+    let emailLogin = AuthR $ PluginR "email" ["login"]
+        emailRegister = AuthR $ PluginR "email" ["register"]
     defaultLayout $ do
         setTitle "OrangeRoster Homepage"
-        addBody $(hamletFile "root")
-        addStyle $(cassiusFile "root")
-        addJavascript $(juliusFile "root")
+        addHamlet $(hamletFile "root")
+        addCassius $(cassiusFile "root")
+        addJulius $(juliusFile "root")

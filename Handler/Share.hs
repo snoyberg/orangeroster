@@ -4,8 +4,9 @@
 module Handler.Share where
 
 import Yesod
-import Yesod.Mail
+import Network.Mail.Mime
 import Yesod.Helpers.Auth
+import Yesod.Helpers.Auth.Email
 import OR
 import Model
 import Settings
@@ -25,7 +26,7 @@ startShare uid u dest = do
 postShareR :: Handler ()
 postShareR = do
     (uid, u) <- requireAuth
-    (res, _, _) <- runFormPost $ emailInput "email"
+    (res, _, _) <- runFormPostNoNonce $ emailInput "email"
     case res of
         FormSuccess email -> do
             x <- runDB $ getBy $ UniqueEmail email
@@ -37,7 +38,9 @@ postShareR = do
                     y <- lift getYesod
                     verkey <- liftIO $ randomKey y
                     emailid <- addUnverified' email verkey
-                    let url = AuthR $ EmailVerifyR (fromPersistKey emailid) verkey
+                    let url = AuthR $ PluginR "email"
+                              ["verkey", show . fromPersistKey $ emailid
+                              , show verkey ]
                     render <- lift getUrlRenderParams
                     let lbs = renderHamlet render $(hamletFile "invite")
                     liftIO $ renderSendMail Mail
@@ -46,12 +49,11 @@ postShareR = do
                             , ("From", "noreply@orangeroster.com")
                             , ("Subject", "Invitation to OrangeRoster")
                             ]
-                        , mailPlain = render url []
-                        , mailParts =
+                        , mailParts = return
                             [ Part
                                 { partType = "text/html; charset=utf8"
                                 , partEncoding = None
-                                , partDisposition = Inline
+                                , partFilename = Nothing
                                 , partContent = lbs
                                 }
                             ]

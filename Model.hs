@@ -1,30 +1,29 @@
 {-# LANGUAGE QuasiQuotes, TypeFamilies, GeneralizedNewtypeDeriving #-}
 module Model where
 
-import Yesod (liftIO, MonadCatchIO, Html, Textarea)
+import Yesod (liftIO, Html, Textarea)
 import Database.Persist
 import Database.Persist.GenericSql
 import Data.Time (UTCTime, getCurrentTime)
-import Control.Arrow ((&&&))
-import Control.Monad (liftM)
+import Control.Monad.Invert
 
 mkPersist [$persist|
 Profile
     creation UTCTime
 User
     creation UTCTime
-    displayName String update
+    displayName String Update
     profile ProfileId
-    password String null update
+    password String Maybe Update
     UniqueUserProfile profile
 FacebookCred
     user UserId
     ident String Eq
     UniqueFacebook ident
 Email
-    owner UserId null Eq update
+    owner UserId Maybe Eq Update
     email String
-    verkey String null update
+    verkey String Maybe Update
     UniqueEmail email
 
 Share
@@ -56,7 +55,7 @@ Misc
 Entry
     owner UserId Eq
     profile ProfileId
-    title String Asc update
+    title String Asc Update
     UniqueEntryProfile profile
 
 Note
@@ -72,13 +71,13 @@ NoteLink
     deriving
 |]
 
-newUser :: MonadCatchIO m => String -> SqlPersist m UserId
+newUser :: (MonadInvertIO m, PersistBackend m) => String -> m UserId
 newUser dn = do
     now <- liftIO getCurrentTime
     eid <- insert $ Profile now
     insert $ User now dn eid Nothing
 
-claimShares :: MonadCatchIO m => UserId -> String -> SqlPersist m ()
+claimShares :: MonadInvertIO m => UserId -> String -> SqlPersist m ()
 claimShares uid email = do
     selectList [ShareOfferDestEq email] [] 0 0 >>= mapM_ (\(sid, s) -> do
         _ <- insert $ Share (shareOfferSource s) uid

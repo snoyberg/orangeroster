@@ -12,22 +12,23 @@ module OR
     ) where
 
 import Yesod
-import Yesod.Mail
+import Network.Mail.Mime
 import Yesod.Helpers.Auth
+import Yesod.Helpers.Auth.Email
+import Yesod.Helpers.Auth.Facebook
 import Yesod.Helpers.Static
 import Yesod.Form.Jquery
 import qualified Settings
 import System.Directory
 import qualified Data.ByteString.Lazy as L
-import Yesod.WebRoutes
+import Web.Routes
 import Database.Persist.GenericSql
 import Model
 import StaticFiles
 import Data.Maybe (isJust)
 import Settings
 import Control.Monad (join)
-import Control.Arrow ((&&&))
-import Control.Monad (liftM)
+import Safe (readMay)
 import Text.Hamlet (toHtml)
 
 data OR = OR
@@ -92,17 +93,21 @@ instance YesodPersist OR where
     runDB db = fmap connPool getYesod >>= Settings.runConnectionPool db
 
 instance YesodAuth OR where
-    type AuthEntity OR = User
-    type AuthEmailEntity OR = Email
+    type AuthId OR = UserId
 
-    defaultDest _ = HomeR
-    getAuthId c _ =
-        case (credsAuthType c, credsDisplayName c, credsEmail c) of
-            (AuthFacebook, Just dn, Just email) -> do
-                let ci = credsIdent c
+    loginDest _ = HomeR
+    logoutDest _ = HomeR
+
+    getAuthId c =
+        case (credsPlugin c, credsIdent c, credsExtra c) of
+            ("facebook", ci, cx) -> do
                 x <- runDB $ getBy $ UniqueFacebook ci
-                me <- runDB $ getBy $ UniqueEmail email
-                uid <- case fmap (facebookCredUser . snd) x of
+                case lookup "verifiedEmail" cx of
+                    Nothing -> return Nothing
+                    Just email -> do
+                        me <- runDB $ getBy $ UniqueEmail email
+                        let dn = maybe "unknown user" id $ lookup "displayName" cx
+                        uid <- case fmap (facebookCredUser . snd) x of
                             Just uid -> return uid
                             Nothing -> runDB $ do
                                 uid <-
@@ -118,9 +123,9 @@ instance YesodAuth OR where
                                             return uid
                                 _ <- insert $ FacebookCred uid ci
                                 return uid
-                runDB $ claimShares uid email
-                return $ Just uid
-            (AuthEmail, _, Just email) -> do
+                        runDB $ claimShares uid email
+                        return $ Just uid
+            ("email", email, _) -> do
                 uid <- runDB $ do
                     me <- getBy $ UniqueEmail email
                     uid <- case me of
@@ -138,13 +143,77 @@ instance YesodAuth OR where
                     return uid
                 return $ Just uid
             _ -> return Nothing
+    showAuthId _ = show
+    readAuthId _ = readMay
+    authPlugins =
+        [ authFacebook facebookKey facebookSecret ["email"]
+        , authEmail ]
 
-    emailSettings _ = Just emailSettings'
-    facebookSettings _ =
-        Just $ FacebookSettings
-            facebookKey
-            facebookSecret
-            ["email"]
+instance YesodAuthEmail OR where
+    type AuthEmailId OR = EmailId
+    showAuthEmailId _ = show
+    readAuthEmailId _ = readMay
+    addUnverified email verkey = runDB $ addUnverified' email verkey
+    sendVerifyEmail email verkey verurl = do
+        render <- getUrlRenderParams
+        tm <- getRouteToMaster
+        let lbs = renderHamlet render $(hamletFile "verify")
+        liftIO $ renderSendMail Mail
+            { mailHeaders =
+                [ ("To", email)
+                , ("From", "reply@orangeroster.com")
+                , ("Subject", "OrangeRoster: Verify your email address")
+                ]
+            , mailParts = return $
+                [ Part
+                    { partType = "text/html; charset=utf-8"
+                    , partEncoding = None
+                    , partFilename = Nothing
+                    , partContent = lbs
+                    }
+                ]
+            }
+    getVerifyKey eid = runDB $ do
+        x <- get $ fromIntegral eid
+        return $ maybe Nothing emailVerkey x
+    setVerifyKey eid verkey = runDB $
+        update (fromIntegral eid) [EmailVerkey $ Just verkey]
+    verifyAccount eid = runDB $ do
+        let emailid = fromIntegral eid
+        x <- get emailid
+        uid <-
+            case x of
+                Nothing -> return Nothing
+                Just (Email (Just uid) _ _) -> return $ Just uid
+                Just (Email Nothing email _) -> do
+                    uid <- newUser email
+                    update emailid [EmailOwner $ Just uid]
+                    return $ Just uid
+        update emailid [EmailVerkey Nothing]
+        return uid
+    getPassword = runDB . fmap (join . fmap userPassword) . get
+    setPassword = \emailid' password -> runDB $ do
+        let emailid = fromIntegral emailid'
+        x <- get emailid
+        case x of
+            Just (Email (Just uid) _ _) -> do
+                update uid [UserPassword $ Just password]
+                update emailid [EmailVerkey Nothing]
+            _ -> return ()
+    getEmailCreds = \email -> runDB $ do
+        x <- getBy $ UniqueEmail email
+        case x of
+            Nothing -> return Nothing
+            Just (eid, e) ->
+                return $ Just EmailCreds
+                    { emailCredsId = fromIntegral eid
+                    , emailCredsAuthId = emailOwner e
+                    , emailCredsStatus = isJust $ emailOwner e
+                    , emailCredsVerkey = emailVerkey e
+                    }
+    getEmail = \emailid -> runDB $ do
+        x <- get $ fromIntegral emailid
+        return $ fmap emailEmail x
 
 intstring :: Integral i => i -> String
 intstring i = show (fromIntegral i :: Int)
@@ -162,72 +231,6 @@ instance YesodJquery OR where
 addUnverified' :: String -> String -> SqlPersist (GHandler s OR) EmailId
 addUnverified' email verkey = insert $ Email Nothing email (Just verkey)
 
-emailSettings' :: EmailSettings OR
-emailSettings' = EmailSettings
-    { addUnverified = \x -> runDB . addUnverified' x
-    , sendVerifyEmail = \email verkey verurl -> do
-        render <- getUrlRenderParams
-        tm <- getRouteToMaster
-        let lbs = renderHamlet render $(hamletFile "verify")
-        liftIO $ renderSendMail Mail
-            { mailHeaders =
-                [ ("To", email)
-                , ("From", "reply@orangeroster.com")
-                , ("Subject", "OrangeRoster: Verify your email address")
-                ]
-            , mailPlain = verurl
-            , mailParts =
-                [ Part
-                    { partType = "text/html; charset=utf-8"
-                    , partEncoding = None
-                    , partDisposition = Inline
-                    , partContent = lbs
-                    }
-                ]
-            }
-    , getVerifyKey = \emailid -> runDB $ do
-        x <- get $ fromIntegral emailid
-        return $ maybe Nothing emailVerkey x
-    , setVerifyKey = \emailid verkey -> runDB $
-        update (fromIntegral emailid) [EmailVerkey $ Just verkey]
-    , verifyAccount = \emailid' -> runDB $ do
-        let emailid = fromIntegral emailid'
-        x <- get emailid
-        uid <-
-            case x of
-                Nothing -> return Nothing
-                Just (Email (Just uid) _ _) -> return $ Just uid
-                Just (Email Nothing email _) -> do
-                    uid <- newUser email
-                    update emailid [EmailOwner $ Just uid]
-                    return $ Just uid
-        update emailid [EmailVerkey Nothing]
-        return uid
-    , getPassword = runDB . fmap (join . fmap userPassword) . get
-    , setPassword = \emailid' password -> runDB $ do
-        let emailid = fromIntegral emailid'
-        x <- get emailid
-        case x of
-            Just (Email (Just uid) _ _) -> do
-                update uid [UserPassword $ Just password]
-                update emailid [EmailVerkey Nothing]
-            _ -> return ()
-    , getEmailCreds = \email -> runDB $ do
-        x <- getBy $ UniqueEmail email
-        case x of
-            Nothing -> return Nothing
-            Just (eid, e) ->
-                return $ Just EmailCreds
-                    { emailCredsId = fromIntegral eid
-                    , emailCredsAuthId = emailOwner e
-                    , emailCredsStatus = isJust $ emailOwner e
-                    , emailCredsVerkey = emailVerkey e
-                    }
-    , getEmail = \emailid -> runDB $ do
-        x <- get $ fromIntegral emailid
-        return $ fmap emailEmail x
-    }
-
 data PTData = PTData
     { ptName :: String
     , ptValue :: Html
@@ -241,7 +244,7 @@ data ProfileData = ProfileData
     , pdMisc :: [PTData]
     }
 
-loadProfile :: MonadCatchIO m => ProfileId -> SqlPersist m ProfileData
+loadProfile :: MonadInvertIO m => ProfileId -> SqlPersist m ProfileData
 loadProfile eid = do
     phones <- selectList [PhoneProfileEq eid] [PhoneNameAsc, PhoneValueAsc] 0 0
     addresses <- selectList [AddressProfileEq eid] [AddressNameAsc, AddressValueAsc] 0 0

@@ -105,13 +105,13 @@ getHomeR = do
     defaultLayout $ do
         setTitle "Homepage"
         let showProfile' = showProfile profile $ Just HomeR
-        addBody $(hamletFile "home")
+        addHamlet $(hamletFile "home")
         addScriptEither $ urlJqueryJs y
         addScriptEither $ urlJqueryUiJs y
         addScript $ StaticR jquery_cookie_js
         addStylesheetEither $ urlJqueryUiCss y
-        addStyle $(cassiusFile "home")
-        addJavascript $(juliusFile "home")
+        addCassius $(cassiusFile "home")
+        addJulius $(juliusFile "home")
 
 data PType = PTPhone | PTAddress | PTScreenName | PTMisc
 
@@ -123,7 +123,7 @@ postHomeR = do
 
 insertProfile :: ProfileId -> Handler ()
 insertProfile pid = do
-    (x, _, _) <- runFormPost entryForm
+    (x, _, _) <- runFormPostNoNonce entryForm
     case x of
         FormSuccess (pt, k, v) -> do
             case pt of
@@ -137,7 +137,7 @@ insertProfile pid = do
 postDisplayNameR :: Handler ()
 postDisplayNameR = do
     (uid, _) <- requireAuth
-    (res, _, _) <- runFormPost $ stringInput "display-name"
+    (res, _, _) <- runFormPostNoNonce $ stringInput "display-name"
     case res of
         FormSuccess dn -> do
             runDB $ update uid [UserDisplayName dn]

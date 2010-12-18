@@ -50,7 +50,7 @@ postEntryNameR eid = do
     uid <- requireAuthId
     Entry uid' _ _ <- runDB $ get404 eid
     unless (uid == uid') $ permissionDenied "You do not own that entry."
-    (res, _, _) <- runFormPost $ stringInput "name"
+    (res, _, _) <- runFormPostNoNonce $ stringInput "name"
     case res of
         FormSuccess name -> do
             runDB $ update eid [EntryTitle name]

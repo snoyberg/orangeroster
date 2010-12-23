@@ -1,6 +1,6 @@
 Name:                       orangeroster
 Build-type:                 Simple
-Version:                    0.0.0
+Version:                    0.1.0
 Cabal-Version:              >= 1.2
 
 Executable simple-server

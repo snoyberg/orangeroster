@@ -15,8 +15,6 @@ Executable simple-server
                             template-haskell,
                             hamlet,
                             time,
-                            transformers,
-                            MonadCatchIO-transformers,
                             utf8-string,
                             pureMD5,
                             mime-mail,

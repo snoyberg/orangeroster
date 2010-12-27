@@ -215,14 +215,6 @@ instance YesodAuthEmail OR where
         x <- get $ fromIntegral emailid
         return $ fmap emailEmail x
 
-intstring :: Integral i => i -> String
-intstring i = show (fromIntegral i :: Int)
-
-stringint :: Integral i => String -> Maybe i
-stringint s = case reads s of
-                (i, _):_ -> Just $ fromIntegral (i :: Int)
-                [] -> Nothing
-
 instance YesodJquery OR where
     urlJqueryJs _ = Left $ StaticR jquery_js
     urlJqueryUiJs _ = Left $ StaticR jquery_ui_js

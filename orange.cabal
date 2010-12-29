@@ -21,5 +21,5 @@ Executable simple-server
                             wai-extra,
                             web-routes,
                             yesod >= 0.6 && < 0.7,
-                            yesod-auth
+                            yesod-auth >= 0.2 && < 0.3
   ghc-options:              -O0 -Wall -Werror

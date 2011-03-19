@@ -1,6 +1,8 @@
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE PackageImports #-}
+{-# LANGUAGE TemplateHaskell #-}
+
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+
 module Controller
     ( withOR
     ) where

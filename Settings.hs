@@ -1,4 +1,5 @@
 {-# LANGUAGE PackageImports #-}
+
 module Settings
     ( hamletFile
     , cassiusFile

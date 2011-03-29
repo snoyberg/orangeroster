@@ -5,21 +5,23 @@ Cabal-Version:              >= 1.2
 
 Executable simple-server
   Main-is:                  simple-server.hs
-  Build-depends:            base > 4 && < 5,
+  Build-depends:            base >= 4 && < 5,
+                            blaze-html >= 0.4 && < 0.5,
                             bytestring,
                             directory,
                             hamlet,
                             mime-mail,
-                            neither,
-                            persistent >= 0.3 && < 0.4,
-                            persistent-sqlite >= 0.3 && < 0.4,
+                            monad-peel >= 0.1 && < 0.2,
+                            persistent >= 0.4 && < 0.5,
+                            persistent-sqlite >= 0.4 && < 0.5,
                             pureMD5,
                             safe,
                             template-haskell,
                             time,
                             utf8-string,
-                            wai-extra,
-                            web-routes,
-                            yesod >= 0.6 && < 0.7,
-                            yesod-auth >= 0.2 && < 0.3
+                            warp >= 0.3 && < 0.4,
+                            yesod >= 0.7 && < 0.8,
+                            yesod-auth >= 0.3 && < 0.4,
+                            yesod-form <= 0.1,
+                            yesod-static <= 0.1
   ghc-options:              -O0 -Wall -Werror

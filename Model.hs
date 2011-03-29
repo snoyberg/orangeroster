@@ -9,7 +9,7 @@ import Yesod (liftIO, Html, Textarea)
 import Database.Persist
 import Database.Persist.GenericSql
 import Data.Time (UTCTime, getCurrentTime)
-import Control.Monad.Invert
+import Control.Monad.IO.Peel
 
 #if GHC7
 mkPersist [persist|

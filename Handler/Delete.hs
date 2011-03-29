@@ -4,6 +4,7 @@
 
 module Handler.Delete where
 
+import Text.Blaze
 import Yesod
 import Yesod.Helpers.Auth
 

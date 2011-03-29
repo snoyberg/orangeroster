@@ -20,7 +20,7 @@ import qualified Text.Cassius as H
 import qualified Text.Julius as H
 import Language.Haskell.TH.Syntax
 import Database.Persist.Sqlite
-import Control.Monad.Invert
+import Control.Monad.IO.Peel
 
 hamletFile :: FilePath -> Q Exp
 hamletFile x = H.hamletFileDebug $ "hamlet/" ++ x ++ ".hamlet"

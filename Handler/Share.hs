@@ -6,6 +6,7 @@ module Handler.Share where
 
 import Data.Time (getCurrentTime)
 import Network.Mail.Mime
+import Text.Blaze
 import Yesod
 import Yesod.Helpers.Auth
 import Yesod.Helpers.Auth.Email

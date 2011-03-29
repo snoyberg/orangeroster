@@ -7,6 +7,7 @@ module Controller
     ( withOR
     ) where
 
+import Data.ByteString.Char8
 import Database.Persist.GenericSql
 import Yesod
 import Yesod.Helpers.Auth

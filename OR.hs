@@ -22,8 +22,7 @@ import Database.Persist.GenericSql
 import Network.Mail.Mime
 import Safe (readMay)
 import System.Directory
-import Text.Hamlet (toHtml)
-import Web.Routes
+import Text.Blaze (toHtml)
 import Yesod
 import Yesod.Form.Jquery
 import Yesod.Helpers.Auth
@@ -32,7 +31,6 @@ import Yesod.Helpers.Auth.Facebook
 import Yesod.Helpers.Static
 
 import Model
-import Settings
 import qualified Settings
 import StaticFiles
 

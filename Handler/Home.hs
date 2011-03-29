@@ -13,6 +13,7 @@ import Data.Function (on)
 import Data.List (groupBy, sortBy)
 import Data.Monoid
 import Data.Ord (comparing)
+import Text.Blaze
 import Yesod
 import Yesod.Form.Core
 import Yesod.Form.Jquery

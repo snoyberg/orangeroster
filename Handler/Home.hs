@@ -143,7 +143,7 @@ postDisplayNameR = do
     case res of
         FormSuccess dn -> do
             runDB $ update uid [UserDisplayName dn]
-            setMessage $ string $ "Display name changed to " ++ dn
+            setMessage $ toHtml $ "Display name changed to " ++ dn
         _ -> setMessage "There was an error in your submission"
     redirect RedirectTemporary HomeR
 

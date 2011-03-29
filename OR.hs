@@ -81,11 +81,7 @@ instance Yesod OR where
         pc <- widgetToPageContent w
         hamletToRepHtml $(Settings.hamletFile "default-layout")
     urlRenderOverride a (StaticR s) =
-        Just $ uncurry (joinPath a Settings.staticroot) $ format s
-      where
-        format = formatPathSegments ss
-        ss :: Site StaticRoute (String -> Maybe (GHandler Static OR ChooseRep))
-        ss = getSubSite
+        Just $ uncurry (joinPath a Settings.staticroot) $ renderRoute s
     urlRenderOverride _ _ = Nothing
     authRoute _ = Just RootR
     addStaticContent ext' _ content = do
@@ -97,7 +93,7 @@ instance Yesod OR where
 
 instance YesodPersist OR where
     type YesodDB OR = SqlPersist
-    runDB db = fmap connPool getYesod >>= Settings.runConnectionPool db
+    runDB db = liftIOHandler $ fmap connPool getYesod >>= Settings.runConnectionPool db
 
 instance YesodAuth OR where
     type AuthId OR = UserId
@@ -153,7 +149,7 @@ instance YesodAuth OR where
     showAuthId _ = show
     readAuthId _ = readMay
     authPlugins =
-        [ authFacebook facebookKey facebookSecret ["email"]
+        [ authFacebook Settings.facebookKey Settings.facebookSecret ["email"]
         , authEmail ]
 
 instance YesodAuthEmail OR where
@@ -164,7 +160,7 @@ instance YesodAuthEmail OR where
     sendVerifyEmail email verkey verurl = do
         render <- getUrlRenderParams
         tm <- getRouteToMaster
-        let lbs = renderHamlet render $(hamletFile "verify")
+        let lbs = renderHamlet render $(Settings.hamletFile "verify")
         liftIO $ renderSendMail Mail
             { mailHeaders =
                 [ ("To", email)
@@ -176,6 +172,7 @@ instance YesodAuthEmail OR where
                     { partType = "text/html; charset=utf-8"
                     , partEncoding = None
                     , partFilename = Nothing
+                    , partHeaders = []
                     , partContent = lbs
                     }
                 ]

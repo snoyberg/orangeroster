@@ -27,7 +27,7 @@ import Settings
 mkYesodDispatch "OR" resourcesOR
 
 getFaviconR :: Handler ()
-getFaviconR = sendFile "image/x-icon" "favicon.ico"
+getFaviconR = sendFile (pack "image/x-icon") "favicon.ico"
 
 withOR :: (Application -> IO a) -> IO a
 withOR f = Settings.withConnectionPool $ \p -> do
@@ -49,4 +49,4 @@ withOR f = Settings.withConnectionPool $ \p -> do
     let h = OR s p
     toWaiApp h >>= f
   where
-    s = fileLookupDir Settings.staticdir typeByExt
+    s = static Settings.staticdir

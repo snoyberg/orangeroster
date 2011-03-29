@@ -22,7 +22,7 @@ startShare uid u dest = do
         _ <- insert $ Share uid dest
         let msg = userDisplayName u ++ " is now sharing with you."
         now <- liftIO getCurrentTime
-        _ <- insert $ Note dest (string msg) now
+        _ <- insert $ Note dest (toHtml msg) now
         return ()
     setMessage "Sharing initiated"
 
@@ -57,6 +57,7 @@ postShareR = do
                                 { partType = "text/html; charset=utf8"
                                 , partEncoding = None
                                 , partFilename = Nothing
+                                , partHeaders = []
                                 , partContent = lbs
                                 }
                             ]

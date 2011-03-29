@@ -33,7 +33,7 @@ deleteHelper s f did = do
                     then return True
                     else lift notFound
     runDB $ delete did
-    setMessage $ string $ s ++ " deleted"
+    setMessage $ toHtml $ s ++ " deleted"
     redirect RedirectTemporary HomeR
 
 postDeletePhoneR :: PhoneId -> Handler ()

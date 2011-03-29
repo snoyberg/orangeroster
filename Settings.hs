@@ -34,10 +34,10 @@ juliusFile x = H.juliusFileDebug $ "julius/" ++ x ++ ".julius"
 connStr :: String
 connStr = "user=orange password=orange host=localhost port=5432 dbname=orange"
 
-withConnectionPool :: MonadInvertIO m => (ConnectionPool -> m a) -> m a
+withConnectionPool :: MonadPeelIO m => (ConnectionPool -> m a) -> m a
 withConnectionPool = withSqlitePool connStr 10
 
-runConnectionPool :: MonadInvertIO m => SqlPersist m a -> ConnectionPool -> m a
+runConnectionPool :: MonadPeelIO m => SqlPersist m a -> ConnectionPool -> m a
 runConnectionPool = runSqlPool
 
 approot :: String

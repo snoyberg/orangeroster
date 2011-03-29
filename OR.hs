@@ -224,7 +224,7 @@ instance YesodJquery OR where
     urlJqueryUiJs _ = Left $ StaticR jquery_ui_js
     urlJqueryUiCss _ = Left $ StaticR jquery_ui_css
 
-addUnverified' :: String -> String -> SqlPersist (GHandler s OR) EmailId
+addUnverified' :: PersistBackend m => String -> String -> m EmailId
 addUnverified' email verkey = insert $ Email Nothing email (Just verkey)
 
 data PTData = PTData
@@ -240,7 +240,7 @@ data ProfileData = ProfileData
     , pdMisc :: [PTData]
     }
 
-loadProfile :: MonadInvertIO m => ProfileId -> SqlPersist m ProfileData
+loadProfile :: MonadPeelIO m => ProfileId -> SqlPersist m ProfileData
 loadProfile eid = do
     phones <- selectList [PhoneProfileEq eid] [PhoneNameAsc, PhoneValueAsc] 0 0
     addresses <- selectList [AddressProfileEq eid] [AddressNameAsc, AddressValueAsc] 0 0

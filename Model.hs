@@ -79,13 +79,13 @@ NoteLink
     deriving
 |]
 
-newUser :: (MonadInvertIO m, PersistBackend m) => String -> m UserId
+newUser :: (MonadPeelIO m, PersistBackend m) => String -> m UserId
 newUser dn = do
     now <- liftIO getCurrentTime
     eid <- insert $ Profile now
     insert $ User now dn eid Nothing
 
-claimShares :: MonadInvertIO m => UserId -> String -> SqlPersist m ()
+claimShares :: MonadPeelIO m => UserId -> String -> SqlPersist m ()
 claimShares uid email = do
     selectList [ShareOfferDestEq email] [] 0 0 >>= mapM_ (\(sid, s) -> do
         _ <- insert $ Share (shareOfferSource s) uid

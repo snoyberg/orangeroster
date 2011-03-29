@@ -5,8 +5,9 @@ module Handler.Delete where
 
 import Yesod
 import Yesod.Helpers.Auth
-import OR
+
 import Model
+import OR
 
 deleteHelper :: PersistEntity x
              => String -> (x -> ProfileId) -> (Key x) -> Handler ()

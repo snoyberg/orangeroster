@@ -3,14 +3,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Handler.Share where
 
-import Yesod
+import Data.Time (getCurrentTime)
 import Network.Mail.Mime
+import Yesod
 import Yesod.Helpers.Auth
 import Yesod.Helpers.Auth.Email
+
 import OR
 import Model
 import Settings
-import Data.Time (getCurrentTime)
 
 --startShare :: UserId -> UserId -> Handle
 startShare :: UserId -> User -> UserId -> Handler ()

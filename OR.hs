@@ -11,25 +11,26 @@ module OR
     , PTData (..)
     ) where
 
-import Yesod
+import Control.Monad (join)
+import qualified Data.ByteString.Lazy as L
+import Data.Maybe (isJust)
+import Database.Persist.GenericSql
 import Network.Mail.Mime
+import Safe (readMay)
+import System.Directory
+import Text.Hamlet (toHtml)
+import Web.Routes
+import Yesod
+import Yesod.Form.Jquery
 import Yesod.Helpers.Auth
 import Yesod.Helpers.Auth.Email
 import Yesod.Helpers.Auth.Facebook
 import Yesod.Helpers.Static
-import Yesod.Form.Jquery
-import qualified Settings
-import System.Directory
-import qualified Data.ByteString.Lazy as L
-import Web.Routes
-import Database.Persist.GenericSql
+
 import Model
-import StaticFiles
-import Data.Maybe (isJust)
 import Settings
-import Control.Monad (join)
-import Safe (readMay)
-import Text.Hamlet (toHtml)
+import qualified Settings
+import StaticFiles
 
 data OR = OR
     { getStatic :: Static

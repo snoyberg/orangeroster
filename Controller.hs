@@ -5,21 +5,21 @@ module Controller
     ( withOR
     ) where
 
-import OR
-import Model
-import Settings
+import Database.Persist.GenericSql
 import Yesod
 import Yesod.Helpers.Auth
 import Yesod.Helpers.Static
-import Database.Persist.GenericSql
 
-import Handler.Root
-import Handler.Home
-import Handler.Share
-import Handler.Profile
-import Handler.Entry
-import Handler.Note
 import Handler.Delete
+import Handler.Entry
+import Handler.Home
+import Handler.Profile
+import Handler.Note
+import Handler.Root
+import Handler.Share
+import OR
+import Model
+import Settings
 
 mkYesodDispatch "OR" resourcesOR
 

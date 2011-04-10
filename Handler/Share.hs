@@ -34,7 +34,10 @@ postShareR = do
         FormSuccess email -> do
             x <- runDB $ getBy $ UniqueEmail email
             case x of
-                Just (_, Email (Just dest) _ _) -> startShare uid u dest
+                Just (_, Email (Just dest) _ _) -> do
+                    case (dest == uid) of
+                      True -> setMessage $ "Unable to share with yourself."
+                      False -> startShare uid u dest
                 _ -> runDB $ do
                     _ <- insertBy $ ShareOffer uid email
                     lift $ setMessage "Sharing offer initiated"

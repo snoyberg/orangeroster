@@ -34,7 +34,6 @@ Email
     email String
     verkey String Maybe Update
     UniqueEmail email
-
 Share
     source UserId Eq
     dest UserId Eq

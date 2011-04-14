@@ -1,92 +1,92 @@
-#tabs
-    %ul
-        %li
-            %a!href="#notifications" Notifications
-        %li
-            %a!href="#profile" My Profile
-        %li
-            %a!href="#sharing" Sharing
-        %li
-            %a!href="#book" Address Book
-    #notifications
-        $if null.notes
-            %p You have no new notifications.
+<div id="tabs">
+    <ul>
+        <li>
+            <a href="#notifications">Notifications
+        <li>
+            <a href="#profile">My Profile
+        <li>
+            <a href="#sharing">Sharing
+        <li>
+            <a href="#book">Address Book
+    <div id="notifications">
+        $if null notes
+            <p>You have no new notifications.
         $else
-            %ul
-                $forall notes n
-                    %li
-                        %span.pin.ui-icon.ui-icon-pin-w.pin
-                        %div $noteContent.snd.fst.n$
-                        %form!method=post!action=@NoteCloseR.fst.fst.n@
-                            %input!type=submit!value=Close
-                        $forall snd.n l
-                            %a!href=$noteLinkDest.snd.l$ $noteLinkText.snd.l$
-    #profile
-        $if not.null.emails
-            #gravatar
-                %img!src=$gravatar.emailEmail.snd.head.emails$
-                This is your gravatar. $
-                %a!href="http://www.gravatar.com/" Find out more.
-        %div
-            %span Your display name is $userDisplayName.u$.
-            %form#change-display-name!method=post!action=@DisplayNameR@
-                Change display name to $
-                %input!type=text!name=display-name!value=$userDisplayName.u$
-                \ $
-                %input!type=submit!value="Change display name"
-        %h2 Emails
-        %ul
-            $forall emails email
-                %li!style=list-style:none
-                    %span.ui-icon.ui-icon-mail-closed!style=float:left;margin-right:10px
-                    $emailEmail.snd.email$
-        %form.hidden!action=/FIXME/
-            Add new email address: $
-            %input!type=email!name=email
-            \ $
-            %input!type=submit!value="Add new email address"
-        ^showProfile'^
-    #sharing
-        %form!method=post!action=@ShareR@
-            Email $
-            %input!type=email!name=email
-            \ $
-            %input!type=submit!value=Share
-        #share-table-wrapper
-            %table
-                $forall shares s
-                    %tr
-                        %td
-                            $maybe siEmail.s e
-                                %img!src=$gravatar.e$
-                        %td
-                            $if siShareFrom.s
-                                %a.share-link!href=@ProfileR.siUid.s@
-                                    $userDisplayName.siUser.s$
+            <ul>
+                $forall n <- notes
+                    <li>
+                        <span .pin .ui-icon .ui-icon-pin-w .pin>
+                        <div>#{noteContent (snd (fst n))}
+                        <form method="post" action="@{NoteCloseR (fst (fst n))}">
+                            <input type="submit" value="Close">
+                        $forall l <- snd n
+                            <a href="#{noteLinkDest (snd l)}">#{noteLinkText (snd l)}
+    <div id="profile">
+        $if not (null emails)
+            <div id="gravatar">
+                <img src="#{gravatar (emailEmail (snd (head emails)))}">
+                \This is your gravatar. 
+                <a href="http://www.gravatar.com/">Find out more.
+        <div>
+            <span>Your display name is #{userDisplayName u}.
+            <form id="change-display-name" method="post" action="@{DisplayNameR}">
+                \Change display name to 
+                <input type="text" name="display-name" value="#{userDisplayName u}">
+                \ 
+                <input type="submit" value="Change display name">
+        <h2>Emails
+        <ul>
+            $forall email <- emails
+                <li style="list-style:none">
+                    <span style="float:left;margin-right:10px" .ui-icon .ui-icon-mail-closed>
+                    \#{emailEmail (snd email)}
+        <form action="/FIXME/" .hidden>
+            \Add new email address: 
+            <input type="email" name="email">
+            \ 
+            <input type="submit" value="Add new email address">
+        \^{showProfile'}
+    <div id="sharing">
+        <form method="post" action="@{ShareR}">
+            \Email 
+            <input type="email" name="email">
+            \ 
+            <input type="submit" value="Share">
+        <div id="share-table-wrapper">
+            <table>
+                $forall s <- shares
+                    <tr>
+                        <td>
+                            $maybe e <- siEmail s
+                                <img src="#{gravatar e}">
+                        <td>
+                            $if siShareFrom s
+                                <a href="@{ProfileR (siUid s)}" .share-link>
+                                    \#{userDisplayName (siUser s)}
                             $else
-                                $userDisplayName.siUser.s$
-                        %td
-                            $if siShareTo.s
-                                %form!method=post!action=@StopShareUserR.siUid.s@
-                                    %input!type=submit!value="Stop Sharing"
+                                \#{userDisplayName (siUser s)}
+                        <td>
+                            $if siShareTo s
+                                <form method="post" action="@{StopShareUserR (siUid s)}">
+                                    <input type="submit" value="Stop Sharing">
                             $else
-                                %form!method=post!action=@ShareUserR.siUid.s@
-                                    %button Share alike
-        #share-pane
-        .weight
-    #book
-        %form!method=post!action=@EntriesR@
-            Add new entry named $
-            %input!type=text!name=name
-            \ $
-            %input!type=submit!value="Add new entry"
-        .accordion
-            $forall entries e
-                %h3
-                    %form.delete-entry!style="float:right"!method=post!action=@DeleteEntryR.fst.e@
-                        %button
-                            %span.ui-icon.ui-icon-trash
-                            %span!style=margin-left:16px Delete
-                    %a!href="#" $entryTitle.snd.e$
-                %div!style=height:400px
-                    %a.ajax-load-content!href=@EntryR.fst.e@ $entryTitle.snd.e$
+                                <form method="post" action="@{ShareUserR (siUid s)}">
+                                    <button>Share alike
+        <div id="share-pane">
+        <div .weight>
+    <div id="book">
+        <form method="post" action="@{EntriesR}">
+            \Add new entry named 
+            <input type="text" name="name">
+            \ 
+            <input type="submit" value="Add new entry">
+        <div .accordion>
+            $forall e <- entries
+                <h3>
+                    <form style="float:right" method="post" action="@{DeleteEntryR (fst e)}" .delete-entry>
+                        <button>
+                            <span .ui-icon .ui-icon-trash>
+                            <span style="margin-left:16px">Delete
+                    <a href="#">#{entryTitle (snd e)}
+                <div style="height:400px">
+                    <a href="@{EntryR (fst e)}" .ajax-load-content>#{entryTitle (snd e)}

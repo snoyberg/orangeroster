@@ -1,27 +1,28 @@
-!!!
-%html
-    %head
-        %title $pageTitle.pc$
-        %link!rel=stylesheet!href=@StaticR.styles_default_css@
-        %link!rel=stylesheet!href=@StaticR.jquery_ui_css@
-        %script!src=@StaticR.jquery_js@
-        %script!src=@StaticR.jquery_ui_js@
-        ^pageHead.pc^
-        <script type="text/javascript">var _gaq = _gaq || [];_gaq.push(['_setAccount', 'UA-1434510-15']);_gaq.push(['_trackPageview']);(function() {var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);})();</script>
-    %body
-        %header
-            #banner
-                %a!href=@RootR@
-                    %img!src=@StaticR.logo_png@!alt="Orange Roster"
-            $maybe user u
-                #userbar
-                    Welcome $u$. $
-                    %a!href=@AuthR.LogoutR@ Logout
-        #wrapper
-            $maybe mmsg msg
-                %p.ui-state-highlight
-                    %span.ui-icon.ui-icon-info!style="float:left"
-                    $msg$
-        #wrapper
-            #wrapper2
-                ^pageBody.pc^
+\<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>#{pageTitle pc}
+        <link rel="stylesheet" href="@{StaticR styles_default_css}">
+        <link rel="stylesheet" href="@{StaticR jquery_ui_css}">
+        <script src="@{StaticR jquery_js}">
+        <script src="@{StaticR jquery_ui_js}">
+        \^{pageHead pc}
+        \<script type="text/javascript">var _gaq = _gaq || [];_gaq.push(['_setAccount', 'UA-1434510-15']);_gaq.push(['_trackPageview']);(function() {var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);})();</script>
+    <body>
+        <header>
+            <div id="banner">
+                <a href="@{RootR}">
+                    <img src="@{StaticR logo_png}" alt="Orange Roster">
+            $maybe u <- user
+                <div id="userbar">
+                    \Welcome #{u}. 
+                    <a href="@{AuthR LogoutR}">Logout
+        <div id="wrapper">
+            $maybe msg <- mmsg
+                <p .ui-state-highlight>
+                    <span style="float:left" .ui-icon .ui-icon-info>
+                    \#{msg}
+        <div id="wrapper">
+            <div id="wrapper2">
+                \^{pageBody pc}

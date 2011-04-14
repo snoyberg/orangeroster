@@ -1,12 +1,12 @@
-%table.profile
-    $forall rows p
-        %tr
-            %th $ptName.p$
-            %td $ptValue.p$
-            $maybe dest _
-                %td
-                    %span.ui-icon.ui-icon-wrench
-                %td
-                    %form!method=post!action=@ptDelete.p@
-                        %button.plain
-                            %span.ui-icon.ui-icon-trash
+<table .profile>
+    $forall p <- rows
+        <tr>
+            <th>#{ptName p}
+            <td>#{ptValue p}
+            $maybe _ <- dest
+                <td>
+                    <span .ui-icon .ui-icon-wrench>
+                <td>
+                    <form method="post" action="@{ptDelete p}">
+                        <button .plain>
+                            <span .ui-icon .ui-icon-trash>

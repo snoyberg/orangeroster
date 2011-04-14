@@ -1,4 +1,4 @@
-<div id="tabs">
+<div #tabs>
     <ul>
         <li>
             <a href="#notifications">Notifications
@@ -8,7 +8,7 @@
             <a href="#sharing">Sharing
         <li>
             <a href="#book">Address Book
-    <div id="notifications">
+    <div #notifications>
         $if null notes
             <p>You have no new notifications.
         $else
@@ -21,18 +21,17 @@
                             <input type="submit" value="Close">
                         $forall l <- snd n
                             <a href="#{noteLinkDest (snd l)}">#{noteLinkText (snd l)}
-    <div id="profile">
+    <div #profile>
         $if not (null emails)
-            <div id="gravatar">
+            <div #gravatar>
                 <img src="#{gravatar (emailEmail (snd (head emails)))}">
-                \This is your gravatar. 
+                This is your gravatar. #
                 <a href="http://www.gravatar.com/">Find out more.
         <div>
             <span>Your display name is #{userDisplayName u}.
             <form id="change-display-name" method="post" action="@{DisplayNameR}">
-                \Change display name to 
-                <input type="text" name="display-name" value="#{userDisplayName u}">
-                \ 
+                Change display name to #
+                <input type="text" name="display-name" value="#{userDisplayName u}"> #
                 <input type="submit" value="Change display name">
         <h2>Emails
         <ul>
@@ -41,18 +40,16 @@
                     <span style="float:left;margin-right:10px" .ui-icon .ui-icon-mail-closed>
                     \#{emailEmail (snd email)}
         <form action="/FIXME/" .hidden>
-            \Add new email address: 
-            <input type="email" name="email">
-            \ 
+            Add new email address: #
+            <input type="email" name="email"> #
             <input type="submit" value="Add new email address">
         \^{showProfile'}
-    <div id="sharing">
+    <div #sharing>
         <form method="post" action="@{ShareR}">
-            \Email 
-            <input type="email" name="email">
-            \ 
+            Email #
+            <input type="email" name="email"> #
             <input type="submit" value="Share">
-        <div id="share-table-wrapper">
+        <div #share-table-wrapper>
             <table>
                 $forall s <- shares
                     <tr>
@@ -72,13 +69,12 @@
                             $else
                                 <form method="post" action="@{ShareUserR (siUid s)}">
                                     <button>Share alike
-        <div id="share-pane">
+        <div #share-pane>
         <div .weight>
-    <div id="book">
+    <div #book>
         <form method="post" action="@{EntriesR}">
-            \Add new entry named 
-            <input type="text" name="name">
-            \ 
+            Add new entry named #
+            <input type="text" name="name"> #
             <input type="submit" value="Add new entry">
         <div .accordion>
             $forall e <- entries

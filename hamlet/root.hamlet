@@ -1,26 +1,26 @@
-<div id="blurb">
+<div #blurb>
     <ul>
         <li>
-            <a href="#what">What 
+            <a href="#what">What
         <li>
             <a href="#profile">Profile
         <li>
             <a href="#share">Share
         <li>
             <a href="#address-book">Address Book
-    <div id="what">
+    <div #what>
         <img src="@{StaticR people_png}" .icon>
-        \Orange Roster is a convenient way to keep up-to-date with your friends' contact information without sacrificing your privacy. No data is ever shared without your explicit instruction. You can safely keep your mailing address, phone number and screen names here without concern of them being publicly available.
-    <div id="profile">
+        Orange Roster is a convenient way to keep up-to-date with your friends' contact information without sacrificing your privacy. No data is ever shared without your explicit instruction. You can safely keep your mailing address, phone number and screen names here without concern of them being publicly available.
+    <div #profile>
         <img src="@{StaticR profile_png}" .icon>
-        \Put up information you want your friends to see: phone numbers, addresses, whatever you like.
-    <div id="share">
+        Put up information you want your friends to see: phone numbers, addresses, whatever you like.
+    <div #share>
         <img src="@{StaticR arrows_png}" .icon>
-        \Share your profile with your friends. Just enter their email address in the share box, and we will take care of the rest. And if they want, they can share right back with you.
-    <div id="address-book">
+        Share your profile with your friends. Just enter their email address in the share box, and we will take care of the rest. And if they want, they can share right back with you.
+    <div #address-book>
         <img src="@{StaticR address_book_png}" .icon>
-        \It's convenient to be able to keep all of your contact information in one place. If your friends put up a profile and share it with you, you can always get their most recent contact information. You can also put up information about them for yourself. Once again, anything goes: favorite color, anniversary or their name in Klingon.
-<div id="auth">
+        It's convenient to be able to keep all of your contact information in one place. If your friends put up a profile and share it with you, you can always get their most recent contact information. You can also put up information about them for yourself. Once again, anything goes: favorite color, anniversary or their name in Klingon.
+<div #auth>
     <form id="login" method="post" action="@{emailLogin}">
         <h3>Login Directly
         <table>
@@ -35,26 +35,24 @@
             <tr>
                 <td colspan="2">
                     <input type="submit" value="Login">
-                    <span id="login-controls">
-    <div id="register">
+                    <span #login-controls>
+    <div #register>
         <h3>Register
         <p>
-            \To get started, just enter your email address below. Don't worry: your privacy is very important to us.
+            To get started, just enter your email address below. Don't worry: your privacy is very important to us.
             <b>We will never share your information without your permission.
         <form method="post" action="@{emailRegister}">
-            \Email address: 
-            <input type="email" name="email">
-            \ 
+            Email address: #
+            <input type="email" name="email"> #
             <input type="submit" value="Register">
-    <div id="forgot">
+    <div #forgot>
         <h3>Password Reset
         <p>We need to verify that you are who you say you are. Please enter your email address below, and we will send you a verification link.
         <form method="post" action="@{AuthR CheckR}">
-            \Email address: 
-            <input type="email" name="email">
-            \ 
+            Email address: #
+            <input type="email" name="email"> #
             <input type="submit" value="Reset Password">
     <div .or>&mdash; OR &mdash;
-    <div id="third-party">
+    <div #third-party>
         <a href="@{AuthR facebookUrl}">
             <img src="http://developers.facebook.com/images/devsite/login-button.png" alt="Login with Facebook">

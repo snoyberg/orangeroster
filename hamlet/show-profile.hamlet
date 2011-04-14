@@ -3,14 +3,13 @@
 $maybe d <- dest
     <form method="post" action="@{d}" .hidden>
         <input type="hidden" name="type" value="phone">
-        \Phone type: 
+        Phone type: #
         <select name="name">
             <option value="Home">Home
             <option value="Cell">Cell
             <option value="Work">Work
-        \ 
-        <input type="tel" name="value">
-        \ 
+        \ #
+        <input type="tel" name="value"> #
         <input type="submit" value="Add">
 <h2>Addresses
 \^{profileTable (pdAddress profile)}
@@ -36,14 +35,13 @@ $maybe d <- dest
 $maybe d <- dest
     <form method="post" action="@{d}" .hidden>
         <input type="hidden" name="type" value="screen-name">
-        \Service: 
+        Service: #
         <select name="name">
             <option value="AIM">AIM
             <option value="Yahoo!">Yahoo!
             <option value="Facebook">Facebook
-        \ 
-        <input type="text" name="value">
-        \ 
+        \ #
+        <input type="text" name="value"> #
         <input type="submit" value="Add">
 <h2>Miscellaneous
 \^{profileTable (pdMisc profile)}

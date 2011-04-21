@@ -1,6 +1,6 @@
 Name:                       orangeroster
 Build-type:                 Simple
-Version:                    0.1.0
+Version:                    0.2
 license:                    BSD3
 license-file:               LICENSE
 author:                     Michael Snoyman

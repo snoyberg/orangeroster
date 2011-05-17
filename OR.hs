@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -42,7 +43,11 @@ data OR = OR
 
 type Handler = GHandler OR OR
 
+#if GHC7
+mkYesodData "OR" [parseRoutes|
+#else
 mkYesodData "OR" [$parseRoutes|
+#endif
 / RootR GET
 /home HomeR GET POST
 /profile/#UserId ProfileR GET

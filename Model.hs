@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -10,7 +11,11 @@ import Database.Persist.GenericSql
 import Data.Time (UTCTime, getCurrentTime)
 import Control.Monad.Invert
 
+#if GHC7
+mkPersist [persist|
+#else
 mkPersist [$persist|
+#endif
 Profile
     creation UTCTime
 User

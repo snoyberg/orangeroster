@@ -1,12 +1,28 @@
 Name:                       orangeroster
 Build-type:                 Simple
 Version:                    0.1.0
-Cabal-Version:              >= 1.2
+license:                    BSD3
+license-file:               LICENSE
+author:                     Michael Snoyman
+synopsis:                   An example Yesod application.
+category:                   Yesod
+stability:                  Experimental
+Cabal-Version:              >= 1.6
+build-type:                 Simple
+homepage:                   http://www.orangeroster.com/
 
 flag ghc7
 
-Executable simple-server
-    Main-is:                simple-server.hs
+flag production
+    Description:   Build the production executable.
+    Default:       False
+
+executable                  orangeroster-test
+    if flag(production)
+        buildable: False
+    else
+        build-depends:      wai-extra >= 0.3 && < 0.4
+    Main-is:                test.hs
     if flag(ghc7)
         build-depends:      base >= 4.3 && < 5
         cpp-options:        -DGHC7
@@ -30,4 +46,23 @@ Executable simple-server
                             yesod-auth >= 0.3 && < 0.4,
                             yesod-form <= 0.1,
                             yesod-static <= 0.1
+    ghc-options:            -threaded -Wall -Werror
+
+executable                  orangeroster-production
+    if flag(production)
+        buildable: True
+    else
+        buildable: False
+    if flag(ghc7)
+        cpp-options:        -DGHC7
+    cpp-options:            -DPRODUCTION
+    main-is:                simple-server.hs
     ghc-options:            -O0 -threaded -Wall -Werror
+
+executable                  orangeroster-devel
+    if flag(production)
+        buildable: False
+    if flag(ghc7)
+        cpp-options:        -DGHC7
+    main-is:                devel-server.hs
+    ghc-options:            -O2 -threaded -Wall -Werror

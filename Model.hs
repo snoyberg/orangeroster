@@ -9,13 +9,14 @@ module Model where
 import Yesod (liftIO, Html, Textarea)
 import Database.Persist
 import Database.Persist.GenericSql
+import Database.Persist.TH (share2)
 import Data.Time (UTCTime, getCurrentTime)
 import Control.Monad.IO.Peel
 
 #if GHC7
-mkPersist [persist|
+share2 mkPersist (mkMigrate "migrateAll") [persist|
 #else
-mkPersist [$persist|
+share2 mkPersist (mkMigrate "migrateAll") [$persist|
 #endif
 Profile
     creation UTCTime

@@ -1,26 +1,27 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Handler.Home where
 
-import Yesod
-import Yesod.Helpers.Auth
-import Yesod.Form.Core
-import Yesod.Form.Jquery
-import OR
-import Settings
-import Model
 import Control.Applicative
-import StaticFiles
-import Data.Monoid
-import Data.List (groupBy, sortBy)
-import Data.Function (on)
-import Data.Ord (comparing)
-import Control.Monad (forM)
 import Control.Arrow ((&&&))
-import Data.Digest.Pure.MD5 (md5)
+import Control.Monad (forM)
 import qualified Data.ByteString.Lazy.UTF8 as L
 import Data.Char (toLower, isSpace)
+import Data.Digest.Pure.MD5 (md5)
+import Data.Function (on)
+import Data.List (groupBy, sortBy)
+import Data.Monoid
+import Data.Ord (comparing)
+import Text.Blaze
+import Yesod
+import Yesod.Form.Core
+import Yesod.Form.Jquery
+import Yesod.Helpers.Auth
+
+import Model
+import OR
+import Settings
+import StaticFiles
 
 entryForm :: FormInput s m (PType, String, String)
 entryForm = pure (,,)
@@ -141,7 +142,7 @@ postDisplayNameR = do
     case res of
         FormSuccess dn -> do
             runDB $ update uid [UserDisplayName dn]
-            setMessage $ string $ "Display name changed to " ++ dn
+            setMessage $ toHtml $ "Display name changed to " ++ dn
         _ -> setMessage "There was an error in your submission"
     redirect RedirectTemporary HomeR
 

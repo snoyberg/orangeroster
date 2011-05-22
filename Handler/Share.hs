@@ -1,16 +1,19 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell #-}
+
 module Handler.Share where
 
-import Yesod
+import Data.Time (getCurrentTime)
 import Network.Mail.Mime
+import Text.Blaze
+import Yesod
 import Yesod.Helpers.Auth
 import Yesod.Helpers.Auth.Email
+
 import OR
 import Model
 import Settings
-import Data.Time (getCurrentTime)
 
 --startShare :: UserId -> UserId -> Handle
 startShare :: UserId -> User -> UserId -> Handler ()
@@ -19,7 +22,7 @@ startShare uid u dest = do
         _ <- insert $ Share uid dest
         let msg = userDisplayName u ++ " is now sharing with you."
         now <- liftIO getCurrentTime
-        _ <- insert $ Note dest (string msg) now
+        _ <- insert $ Note dest (toHtml msg) now
         return ()
     setMessage "Sharing initiated"
 
@@ -31,7 +34,10 @@ postShareR = do
         FormSuccess email -> do
             x <- runDB $ getBy $ UniqueEmail email
             case x of
-                Just (_, Email (Just dest) _ _) -> startShare uid u dest
+                Just (_, Email (Just dest) _ _) -> do
+                    case (dest == uid) of
+                      True -> setMessage $ "Unable to share with yourself."
+                      False -> startShare uid u dest
                 _ -> runDB $ do
                     _ <- insertBy $ ShareOffer uid email
                     lift $ setMessage "Sharing offer initiated"
@@ -54,6 +60,7 @@ postShareR = do
                                 { partType = "text/html; charset=utf8"
                                 , partEncoding = None
                                 , partFilename = Nothing
+                                , partHeaders = []
                                 , partContent = lbs
                                 }
                             ]

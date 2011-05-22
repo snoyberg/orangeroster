@@ -1,13 +1,23 @@
-{-# LANGUAGE QuasiQuotes, TypeFamilies, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
+
 module Model where
 
 import Yesod (liftIO, Html, Textarea)
 import Database.Persist
 import Database.Persist.GenericSql
+import Database.Persist.TH (share2)
 import Data.Time (UTCTime, getCurrentTime)
-import Control.Monad.Invert
+import Control.Monad.IO.Peel
 
-mkPersist [$persist|
+#if GHC7
+share2 mkPersist (mkMigrate "migrateAll") [persist|
+#else
+share2 mkPersist (mkMigrate "migrateAll") [$persist|
+#endif
 Profile
     creation UTCTime
 User
@@ -25,7 +35,6 @@ Email
     email String
     verkey String Maybe Update
     UniqueEmail email
-
 Share
     source UserId Eq
     dest UserId Eq
@@ -71,13 +80,13 @@ NoteLink
     deriving
 |]
 
-newUser :: (MonadInvertIO m, PersistBackend m) => String -> m UserId
+newUser :: (MonadPeelIO m, PersistBackend m) => String -> m UserId
 newUser dn = do
     now <- liftIO getCurrentTime
     eid <- insert $ Profile now
     insert $ User now dn eid Nothing
 
-claimShares :: MonadInvertIO m => UserId -> String -> SqlPersist m ()
+claimShares :: MonadPeelIO m => UserId -> String -> SqlPersist m ()
 claimShares uid email = do
     selectList [ShareOfferDestEq email] [] 0 0 >>= mapM_ (\(sid, s) -> do
         _ <- insert $ Share (shareOfferSource s) uid

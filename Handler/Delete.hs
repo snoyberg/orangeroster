@@ -1,12 +1,15 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell #-}
+
 module Handler.Delete where
 
+import Text.Blaze
 import Yesod
 import Yesod.Helpers.Auth
-import OR
+
 import Model
+import OR
 
 deleteHelper :: PersistEntity x
              => String -> (x -> ProfileId) -> (Key x) -> Handler ()
@@ -30,7 +33,7 @@ deleteHelper s f did = do
                     then return True
                     else lift notFound
     runDB $ delete did
-    setMessage $ string $ s ++ " deleted"
+    setMessage $ toHtml $ s ++ " deleted"
     redirect RedirectTemporary HomeR
 
 postDeletePhoneR :: PhoneId -> Handler ()

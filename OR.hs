@@ -1,4 +1,8 @@
-{-# LANGUAGE QuasiQuotes, TemplateHaskell, TypeFamilies #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
+
 module OR
     ( OR (..)
     , ORRoute (..)
@@ -11,25 +15,24 @@ module OR
     , PTData (..)
     ) where
 
-import Yesod
+import Control.Monad (join)
+import qualified Data.ByteString.Lazy as L
+import Data.Maybe (isJust)
+import Database.Persist.GenericSql
 import Network.Mail.Mime
+import Safe (readMay)
+import System.Directory
+import Text.Blaze (toHtml)
+import Yesod
+import Yesod.Form.Jquery
 import Yesod.Helpers.Auth
 import Yesod.Helpers.Auth.Email
 import Yesod.Helpers.Auth.Facebook
 import Yesod.Helpers.Static
-import Yesod.Form.Jquery
-import qualified Settings
-import System.Directory
-import qualified Data.ByteString.Lazy as L
-import Web.Routes
-import Database.Persist.GenericSql
+
 import Model
+import qualified Settings
 import StaticFiles
-import Data.Maybe (isJust)
-import Settings
-import Control.Monad (join)
-import Safe (readMay)
-import Text.Hamlet (toHtml)
 
 data OR = OR
     { getStatic :: Static
@@ -38,7 +41,11 @@ data OR = OR
 
 type Handler = GHandler OR OR
 
+#if GHC7
+mkYesodData "OR" [parseRoutes|
+#else
 mkYesodData "OR" [$parseRoutes|
+#endif
 / RootR GET
 /home HomeR GET POST
 /profile/#UserId ProfileR GET
@@ -74,11 +81,7 @@ instance Yesod OR where
         pc <- widgetToPageContent w
         hamletToRepHtml $(Settings.hamletFile "default-layout")
     urlRenderOverride a (StaticR s) =
-        Just $ uncurry (joinPath a Settings.staticroot) $ format s
-      where
-        format = formatPathSegments ss
-        ss :: Site StaticRoute (String -> Maybe (GHandler Static OR ChooseRep))
-        ss = getSubSite
+        Just $ uncurry (joinPath a Settings.staticroot) $ renderRoute s
     urlRenderOverride _ _ = Nothing
     authRoute _ = Just RootR
     addStaticContent ext' _ content = do
@@ -90,7 +93,7 @@ instance Yesod OR where
 
 instance YesodPersist OR where
     type YesodDB OR = SqlPersist
-    runDB db = fmap connPool getYesod >>= Settings.runConnectionPool db
+    runDB db = liftIOHandler $ fmap connPool getYesod >>= Settings.runConnectionPool db
 
 instance YesodAuth OR where
     type AuthId OR = UserId
@@ -146,7 +149,7 @@ instance YesodAuth OR where
     showAuthId _ = show
     readAuthId _ = readMay
     authPlugins =
-        [ authFacebook facebookKey facebookSecret ["email"]
+        [ authFacebook Settings.facebookKey Settings.facebookSecret ["email"]
         , authEmail ]
 
 instance YesodAuthEmail OR where
@@ -157,7 +160,7 @@ instance YesodAuthEmail OR where
     sendVerifyEmail email verkey verurl = do
         render <- getUrlRenderParams
         tm <- getRouteToMaster
-        let lbs = renderHamlet render $(hamletFile "verify")
+        let lbs = renderHamlet render $(Settings.hamletFile "verify")
         liftIO $ renderSendMail Mail
             { mailHeaders =
                 [ ("To", email)
@@ -169,6 +172,7 @@ instance YesodAuthEmail OR where
                     { partType = "text/html; charset=utf-8"
                     , partEncoding = None
                     , partFilename = Nothing
+                    , partHeaders = []
                     , partContent = lbs
                     }
                 ]
@@ -220,7 +224,7 @@ instance YesodJquery OR where
     urlJqueryUiJs _ = Left $ StaticR jquery_ui_js
     urlJqueryUiCss _ = Left $ StaticR jquery_ui_css
 
-addUnverified' :: String -> String -> SqlPersist (GHandler s OR) EmailId
+addUnverified' :: PersistBackend m => String -> String -> m EmailId
 addUnverified' email verkey = insert $ Email Nothing email (Just verkey)
 
 data PTData = PTData
@@ -236,7 +240,7 @@ data ProfileData = ProfileData
     , pdMisc :: [PTData]
     }
 
-loadProfile :: MonadInvertIO m => ProfileId -> SqlPersist m ProfileData
+loadProfile :: MonadPeelIO m => ProfileId -> SqlPersist m ProfileData
 loadProfile eid = do
     phones <- selectList [PhoneProfileEq eid] [PhoneNameAsc, PhoneValueAsc] 0 0
     addresses <- selectList [AddressProfileEq eid] [AddressNameAsc, AddressValueAsc] 0 0

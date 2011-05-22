@@ -1,25 +1,68 @@
 Name:                       orangeroster
 Build-type:                 Simple
-Version:                    0.1.0
-Cabal-Version:              >= 1.2
+Version:                    0.2
+license:                    BSD3
+license-file:               LICENSE
+author:                     Michael Snoyman
+synopsis:                   An example Yesod application.
+category:                   Yesod
+stability:                  Experimental
+Cabal-Version:              >= 1.6
+build-type:                 Simple
+homepage:                   http://www.orangeroster.com/
 
-Executable simple-server
-  Main-is:                  simple-server.hs
-  Build-depends:            base > 4 && < 5,
+flag ghc7
+
+flag production
+    Description:   Build the production executable.
+    Default:       False
+
+executable                  orangeroster-test
+    if flag(production)
+        buildable: False
+    else
+        build-depends:      wai-extra >= 0.3 && < 0.4
+    Main-is:                test.hs
+    if flag(ghc7)
+        build-depends:      base >= 4.3 && < 5
+        cpp-options:        -DGHC7
+    else
+        build-depends:      base >= 4 && < 4.3
+    Build-depends:          blaze-html >= 0.4 && < 0.5,
                             bytestring,
                             directory,
                             hamlet,
                             mime-mail,
-                            neither,
-                            persistent >= 0.3 && < 0.4,
-                            persistent-sqlite >= 0.3 && < 0.4,
+                            monad-peel >= 0.1 && < 0.2,
+                            persistent >= 0.4 && < 0.5,
+                            persistent-sqlite >= 0.4 && < 0.5,
                             pureMD5,
                             safe,
                             template-haskell,
                             time,
                             utf8-string,
-                            wai-extra,
-                            web-routes,
-                            yesod >= 0.6 && < 0.7,
-                            yesod-auth >= 0.2 && < 0.3
-  ghc-options:              -O0 -Wall -Werror
+                            warp >= 0.3 && < 0.4,
+                            yesod >= 0.7 && < 0.8,
+                            yesod-auth >= 0.3 && < 0.4,
+                            yesod-form <= 0.1,
+                            yesod-static <= 0.1
+    ghc-options:            -threaded -Wall -Werror
+
+executable                  orangeroster-production
+    if flag(production)
+        buildable: True
+    else
+        buildable: False
+    if flag(ghc7)
+        cpp-options:        -DGHC7
+    cpp-options:            -DPRODUCTION
+    main-is:                simple-server.hs
+    ghc-options:            -O0 -threaded -Wall -Werror
+
+executable                  orangeroster-devel
+    if flag(production)
+        buildable: False
+    if flag(ghc7)
+        cpp-options:        -DGHC7
+    main-is:                devel-server.hs
+    ghc-options:            -O2 -threaded -Wall -Werror

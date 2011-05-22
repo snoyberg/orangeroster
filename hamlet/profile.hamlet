@@ -1,2 +1,2 @@
-%h1 Profile for: $userDisplayName.src$
-^showProfile'^
+<h1>Profile for: #{userDisplayName src}
+\^{showProfile'}
